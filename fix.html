@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jalwa V2 - Final Master Admin</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --bg: #0b0f19; --card: #161d2b; --gold: #ff9800; --green: #00c853; --red: #ff5252; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding: 10px; }
+        .section { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #2d3a4f; margin-bottom: 15px; }
+        h3 { color: var(--gold); margin-top: 0; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        
+        /* High Risk Blinking */
+        .high-risk { background: #ff5252 !important; animation: blink 0.8s infinite; border: 2px solid white !important; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { text-align: left; padding: 10px; background: #1f293a; }
+        td { padding: 10px; border-bottom: 1px solid #2d3a4f; vertical-align: top; }
+        
+        .bank-details { background: #000; padding: 8px; border-radius: 5px; color: #00e5ff; font-family: monospace; border: 1px dashed #444; }
+        .btn-pay { background: var(--green); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-rej { background: var(--red); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+        
+        .bet-summary { display: flex; gap: 10px; margin-bottom: 10px; }
+        .bet-item { flex: 1; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; }
+        .num-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 10px; }
+        .num-box { background: #1f293a; padding: 10px; border-radius: 5px; text-align: center; border: 1px solid #333; cursor: pointer; }
+
+        /* Custom Notification Toast (Pop-up replace karne ke liye) */
+        #toast {
+            visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center;
+            border-radius: 8px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 30px;
+            transform: translateX(-50%); font-size: 14px; border: 1px solid var(--gold);
+        }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+    </style>
+</head>
+<body>
+
+<h2 style="text-align:center; color:var(--gold);">JALWA MASTER ADMIN V2</h2>
+
+<div id="toast">Message here...</div>
+
+<div class="section">
+    <h3><i class="fas fa-chart-line"></i> LIVE BET MONITOR (Period: <span id="curPeriod">-</span>)</h3>
+    <div class="bet-summary">
+        <div id="box-Green" class="bet-item" style="background:var(--green)">GREEN: ₹<span id="sumG">0</span></div>
+        <div id="box-Violet" class="bet-item" style="background:#8b5cf6">VIOLET: ₹<span id="sumV">0</span></div>
+        <div id="box-Red" class="bet-item" style="background:var(--red)">RED: ₹<span id="sumR">0</span></div>
+    </div>
+    <div class="num-grid" id="numBets"></div>
+</div>
+
+<div class="section">
+    <h3><i class="fas fa-university"></i> PENDING WITHDRAWALS</h3>
+    <div style="max-height: 250px; overflow-y: auto;">
+        <table>
+            <thead><tr><th>User ID</th><th>Amount</th><th>Details</th><th>Action</th></tr></thead>
+            <tbody id="witBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="section">
+    <h3><i class="fas fa-plus-circle"></i> PENDING DEPOSITS</h3>
+    <div style="max-height: 250px; overflow-y: auto;">
+        <table>
+            <thead><tr><th>User ID</th><th>Amount</th><th>UTR / Payment</th><th>Action</th></tr></thead>
+            <tbody id="depBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = { databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Notification Function
+    function showToast(msg) {
+        var x = document.getElementById("toast");
+        x.innerHTML = msg;
+        x.className = "show";
+        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+    }
+
+    // --- WITHDRAWAL FETCH ---
+    db.ref('requests/withdrawals').on('value', snap => {
+        let html = "";
+        snap.forEach(child => {
+            let w = child.val();
+            if(!w.status || w.status === 'pending' || w.status === 'Pending') {
+                let details = w.details ? (w.details.method === 'UPI' ? `UPI: ${w.details.upi}` : `ACC: ${w.details.acc}<br>IFSC: ${w.details.ifsc}`) : "No Details Provided";
+                html += `<tr><td>${w.uid}</td><td style="color:var(--red); font-weight:bold;">₹${w.amount}</td><td><div class="bank-details">${details}</div></td>
+                    <td><button class="btn-pay" onclick="updateReq('withdrawals','${child.key}','success')">PAID</button>
+                    <button class="btn-rej" onclick="rejectWit('${child.key}','${w.uid}',${w.amount})">REJ</button></td></tr>`;
+            }
+        });
+        document.getElementById('witBody').innerHTML = html || "<tr><td colspan='4' style='text-align:center'>No Pending Requests</td></tr>";
+    });
+
+    // --- DEPOSIT FETCH ---
+    db.ref('requests/deposits').on('value', snap => {
+        let html = "";
+        snap.forEach(child => {
+            let d = child.val();
+            if(!d.status || d.status === 'pending') {
+                html += `<tr><td>${d.uid}</td><td style="color:var(--green); font-weight:bold;">₹${d.amount}</td><td><span style="color:var(--gold)">${d.utr || 'N/A'}</span></td>
+                    <td><button class="btn-pay" onclick="approveDep('${child.key}','${d.uid}',${d.amount})">APPROVE</button></td></tr>`;
+            }
+        });
+        document.getElementById('depBody').innerHTML = html || "<tr><td colspan='4' style='text-align:center'>No Pending Deposits</td></tr>";
+    });
+
+    // --- LIVE BET MONITOR ---
+    let currentPeriod = "";
+    setInterval(() => {
+        const now = new Date();
+        let pId = now.getFullYear().toString() + (now.getMonth()+1).toString().padStart(2,'0') + now.getDate().toString().padStart(2,'0') + "100" + Math.floor((now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds())/30);
+        if(currentPeriod !== pId) {
+            currentPeriod = pId;
+            document.getElementById('curPeriod').innerText = currentPeriod;
+            syncBets(currentPeriod);
+        }
+    }, 1000);
+
+    function syncBets(pId) {
+        db.ref('bets/' + pId).on('value', snap => {
+            let sums = { Green:0, Red:0, Violet:0 };
+            let numSums = Array(10).fill(0);
+            snap.forEach(c => {
+                let b = c.val(); let a = Number(b.amt);
+                if(typeof b.sel === 'number') numSums[b.sel] += a;
+                else sums[b.sel] += a;
+            });
+            document.getElementById('sumG').innerText = sums.Green;
+            document.getElementById('sumV').innerText = sums.Violet;
+            document.getElementById('sumR').innerText = sums.Red;
+
+            let colors = ['Green', 'Violet', 'Red'];
+            let maxC = colors.reduce((a, b) => sums[a] > sums[b] ? a : b);
+            colors.forEach(col => document.getElementById('box-'+col).classList.remove('high-risk'));
+            if(sums[maxC] > 0) document.getElementById('box-'+maxC).classList.add('high-risk');
+
+            let nHtml = ""; let maxN = Math.max(...numSums);
+            for(let i=0; i<=9; i++) {
+                let risk = (numSums[i] === maxN && maxN > 0) ? 'high-risk' : '';
+                nHtml += `<div class="num-box ${risk}" onclick="setRes(${i})">${i}<br>₹${numSums[i]}</div>`;
+            }
+            document.getElementById('numBets').innerHTML = nHtml;
+        });
+    }
+
+    // --- FUNCTIONS ---
+    function setRes(v) { 
+        db.ref('nextResult').set(v); 
+        showToast("Result Forced: " + v); // Alert ki jagah Toast
+    }
+    
+    function approveDep(key, uid, amt) {
+        db.ref('users/'+uid+'/balance').transaction(c => (Number(c)||0) + Number(amt));
+        db.ref('requests/deposits/'+key).update({ status: 'success' });
+        showToast("Deposit Approved! Balance Added.");
+    }
+
+    function updateReq(path, key, status) { 
+        db.ref('requests/'+path+'/'+key).update({ status: status }); 
+        showToast("Withdrawal Marked as PAID");
+    }
+
+    function rejectWit(key, uid, amt) {
+        db.ref('users/'+uid+'/balance').transaction(c => (Number(c)||0) + Number(amt));
+        db.ref('requests/withdrawals/'+key).update({ status: 'rejected' });
+        showToast("Refunded & Rejected");
+    }
+</script>
+</body>
+</html>
