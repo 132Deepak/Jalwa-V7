@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jalwa Pro - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        :root { --bg: #0d131f; --card: #1f293a; --gold: #ff9800; }
+        body { margin: 0; background: #000; font-family: 'Segoe UI', sans-serif; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .auth-container { width: 90%; max-width: 400px; background: var(--bg); padding: 35px; border-radius: 30px; border: 1px solid #2d3a4f; text-align: center; }
+        h2 { margin-bottom: 30px; letter-spacing: 1px; }
+        .input-group { position: relative; margin-bottom: 20px; }
+        .input-group i { position: absolute; left: 15px; top: 18px; color: #64748b; }
+        input { width: 100%; background: var(--card); border: 1px solid #2d3a4f; padding: 15px 15px 15px 45px; border-radius: 15px; color: white; outline: none; box-sizing: border-box; }
+        .btn-login { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: bold; background: var(--gold); color: #000; cursor: pointer; }
+        .link { margin-top: 25px; font-size: 14px; color: #888; }
+        .link a { color: var(--gold); text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="auth-container">
+    <div style="font-size: 50px; color: var(--gold); margin-bottom: 15px;"><i class="fas fa-user-circle"></i></div>
+    <h2>PLAYER LOGIN</h2>
+    
+    <div class="input-group">
+        <i class="fas fa-phone"></i>
+        <input type="number" id="logPhone" placeholder="Phone Number">
+    </div>
+
+    <div class="input-group">
+        <i class="fas fa-lock"></i>
+        <input type="password" id="logPass" placeholder="Password">
+    </div>
+
+    <button class="btn btn-login" onclick="handleLogin()">LOGIN TO PLAY</button>
+
+    <div class="link">New player? <a href="register.html">Create Account</a></div>
+</div>
+
+<script>
+    const firebaseConfig = { databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function handleLogin() {
+        const phone = document.getElementById('logPhone').value;
+        const pass = document.getElementById('logPass').value;
+
+        if(!phone || !pass) return alert("Fill all fields!");
+
+        db.ref('users').orderByChild('phone').equalTo(phone).once('value', (snap) => {
+            if(snap.exists()) {
+                const userData = Object.values(snap.val())[0];
+                if(userData.password === pass) {
+                    localStorage.setItem('jalwa_id', userData.userId);
+                    alert("Login Success!");
+                    window.location.href = "dashboard.html";
+                } else {
+                    alert("Wrong Password!");
+                }
+            } else {
+                alert("User not found!");
+            }
+        });
+    }
+</script>
+</body>
+</html>
