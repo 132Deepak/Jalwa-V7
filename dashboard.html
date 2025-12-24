@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jalwa Pro Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        :root { --bg: #0d131f; --card: #1f293a; --gold: #ff9800; --blue: #2196f3; --glass: rgba(255, 255, 255, 0.05); }
+        body { margin: 0; background: #000; font-family: 'Segoe UI', sans-serif; color: white; overflow-x: hidden; }
+        .app-container { width: 100%; max-width: 480px; margin: auto; background: var(--bg); min-height: 100vh; padding-bottom: 80px; }
+        .header { padding: 20px; display: flex; justify-content: space-between; align-items: center; background: var(--card); border-radius: 0 0 20px 20px; }
+        .user-pill { display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 40px; height: 40px; background: var(--gold); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #000; font-weight: bold; }
+        .wallet-box { margin: 15px; padding: 25px; background: linear-gradient(135deg, #1e3a8a, #1e40af); border-radius: 24px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .bonus-card { margin: 0 15px 15px; background: linear-gradient(90deg, #ff416c, #ff4b2b); padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 5px 15px rgba(255,65,108,0.3); }
+        .game-launch-banner { margin: 10px 15px; background: linear-gradient(45deg, #1a1a1a, #2d3a4f); border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid #3d4b5f; cursor: pointer; position: relative; }
+        .game-icon { width: 60px; height: 60px; background: var(--gold); border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 30px; color: #000; }
+        .play-tag { position: absolute; right: 20px; background: var(--gold); color: #000; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .menu-list { margin: 20px 15px; }
+        .menu-item { background: var(--card); padding: 15px; border-radius: 15px; display: flex; align-items: center; gap: 15px; margin-bottom: 12px; cursor: pointer; border: 1px solid #2d3a4f; transition: 0.3s; }
+        .menu-item:active { transform: scale(0.96); }
+        .menu-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .issue-box { background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 15px; padding: 10px; margin-top: 5px; }
+        .issue-btn { background: var(--card); padding: 12px; border-radius: 10px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; font-size: 13px; border: 1px solid #2d3a4f; cursor: pointer; }
+        .page-view { display: none; }
+        .page-view.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: #161e2b; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #2d3a4f; z-index: 1000; }
+        .nav-item { text-align: center; color: #64748b; cursor: pointer; flex: 1; font-size: 11px; }
+        .nav-item.active { color: var(--gold); }
+        .nav-item i { font-size: 22px; margin-bottom: 4px; display: block; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="header">
+        <div class="user-pill">
+            <div class="avatar">J</div>
+            <div>
+                <div style="font-size: 10px; color: #888;">ID: <span id="uID">...</span></div>
+                <div style="font-weight: bold; font-size: 13px;">Welcome Back</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="home" class="page-view active">
+        <div class="wallet-box">
+            <div style="font-size: 13px; opacity: 0.8;">Total Assets</div>
+            <div style="font-size: 32px; font-weight: bold; margin: 5px 0;">₹ <span id="mainBal">0.00</span></div>
+            <div style="font-size: 11px; color: #4ade80;"><i class="fas fa-shield-alt"></i> Secure Wallet</div>
+        </div>
+        <div class="bonus-card">
+            <div><b style="font-size: 14px;">₹20 Daily Gift</b><br><small>One-time Reward</small></div>
+            <button id="claimBtn" onclick="claimBonus()" style="background: white; color: #ff4b2b; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;">CLAIM</button>
+        </div>
+        <div class="game-launch-banner" onclick="location.href='game.html'">
+            <div class="game-icon"><i class="fas fa-gamepad"></i></div>
+            <div class="game-info"><h3>WinGo 30s</h3><p>Real Cash Game</p></div>
+            <div class="play-tag">PLAY</div>
+        </div>
+    </div>
+
+    <div id="wallet" class="page-view">
+        <div style="padding: 20px; text-align: center;">
+            <div class="wallet-box" style="margin: 0 0 20px 0;">
+                <div style="font-size: 14px; opacity: 0.8;">Wallet Balance</div>
+                <div style="font-size: 30px; font-weight: bold;">₹ <span id="walletBal">0.00</span></div>
+            </div>
+            <button onclick="location.href='wallet.html'" style="width: 100%; padding: 18px; background: var(--blue); color: white; border: none; border-radius: 15px; font-weight: bold; font-size: 16px;">
+                <i class="fas fa-wallet"></i> OPEN WALLET
+            </button>
+        </div>
+    </div>
+
+    <div id="account" class="page-view">
+        <div style="padding: 20px;">
+            <div style="background: var(--card); padding: 30px; border-radius: 25px; text-align: center; border: 1px solid #2d3a4f;">
+                <div class="avatar" style="width: 80px; height: 80px; margin: auto; font-size: 35px; border: 3px solid var(--gold);">J</div>
+                <div style="margin-top: 15px;">
+                    <div style="color: #888; font-size: 12px; letter-spacing: 1px;">GAME ID</div>
+                    <h2 id="profID" style="margin: 5px 0; color: var(--gold); letter-spacing: 1px;">...</h2>
+                    <div style="font-size: 12px; color: #4ade80;"><i class="fas fa-check-circle"></i> Verified Profile</div>
+                </div>
+            </div>
+
+            <div class="menu-list">
+                <p style="color: #64748b; font-size: 12px; margin-left: 5px;">HELP & SUPPORT</p>
+                
+                <div class="menu-item" onclick="copyAdminID()">
+                    <div class="menu-icon" style="background: #0088cc;"><i class="fab fa-telegram-plane"></i></div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold; font-size: 14px;">Contact Admin</div>
+                        <div style="font-size: 11px; color: #888;">Tap to copy Username</div>
+                    </div>
+                </div>
+
+                <div class="issue-box">
+                    <p style="font-size: 11px; color: #ef4444; font-weight: bold; margin-bottom: 10px;">REPORT TRANSACTION ISSUE</p>
+                    <div class="issue-btn" onclick="alert('Please contact Admin on Telegram: @Realtrademods8911 with your Game ID')">
+                        <i class="fas fa-plus-circle" style="color: #22c55e;"></i> Deposit Not Added
+                    </div>
+                    <div class="issue-btn" onclick="alert('Withdrawal takes 2-4 hours. Please wait or contact Admin.')">
+                        <i class="fas fa-clock" style="color: #f59e0b;"></i> Withdrawal Pending
+                    </div>
+                </div>
+
+                <button onclick="logout()" style="width: 100%; background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid #ef4444; padding: 15px; border-radius: 15px; margin-top: 20px; font-weight: bold; cursor: pointer;">
+                    <i class="fas fa-sign-out-alt"></i> LOGOUT
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="showPage('home', this)"><i class="fas fa-house"></i>Home</div>
+        <div class="nav-item" onclick="showPage('wallet', this)"><i class="fas fa-wallet"></i>Wallet</div>
+        <div class="nav-item" onclick="showPage('account', this)"><i class="fas fa-user"></i>Account</div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = { databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let userId = localStorage.getItem('jalwa_id');
+    if(!userId) {
+        userId = "JALWA-" + Math.floor(1000 + Math.random() * 9000);
+        localStorage.setItem('jalwa_id', userId);
+    }
+
+    function showPage(id, el) {
+        document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    window.onload = () => {
+        document.getElementById('uID').innerText = userId;
+        document.getElementById('profID').innerText = userId;
+        
+        // Fix for Balance sync
+        db.ref('users/' + userId + '/balance').on('value', (snap) => {
+            let val = Number(snap.val() || 0);
+            document.getElementById('mainBal').innerText = val.toFixed(2);
+            document.getElementById('walletBal').innerText = val.toFixed(2);
+        });
+
+        db.ref('users/' + userId + '/bonusClaimed').on('value', (snap) => {
+            if(snap.val() === true) {
+                const btn = document.getElementById('claimBtn');
+                btn.innerText = "CLAIMED";
+                btn.style.opacity = "0.6";
+                btn.disabled = true;
+            }
+        });
+    };
+
+    function claimBonus() {
+        db.ref('users/' + userId + '/bonusClaimed').once('value', (snap) => {
+            if(snap.val() === true) return alert("Already claimed!");
+            db.ref('users/' + userId + '/balance').transaction((current) => {
+                return (Number(current) || 0) + 20;
+            });
+            db.ref('users/' + userId).update({ bonusClaimed: true });
+            alert("₹20 Bonus Added!");
+        });
+    }
+
+    // New Safe Function without Telegram Link
+    function copyAdminID() {
+        const adminID = "@Realtrademods8911";
+        navigator.clipboard.writeText(adminID).then(() => {
+            alert("Admin Username Copied: " + adminID + "\nPaste it in Telegram search.");
+        });
+    }
+
+    function logout() {
+        if(confirm("Are you sure?")) { 
+            localStorage.clear(); 
+            location.reload(); 
+        }
+    }
+</script>
+</body>
+</html>
