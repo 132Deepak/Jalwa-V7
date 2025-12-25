@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jalwa V2 - GitHub Admin</title>
+    <title>Jalwa V2 - Final Master Admin</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -12,183 +12,20 @@
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding: 10px; overflow-x: hidden; }
         .section { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #2d3a4f; margin-bottom: 15px; }
         h3 { color: var(--gold); margin-top: 0; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; }
-        
-        /* High Load Alert */
         .high-load { background: var(--red) !important; animation: blink 0.6s infinite; border: 2px solid white !important; box-shadow: 0 0 15px var(--red); }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-
-        /* Monitor Grid */
         .bet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
         .bet-card { padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; cursor: pointer; border: 1px solid #333; transition: 0.3s; }
         .num-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
         .num-box { background: #1f293a; padding: 10px; border-radius: 5px; text-align: center; cursor: pointer; border: 1px solid #333; font-size: 14px; }
-        
         .req-list { max-height: 250px; overflow-y: auto; }
-        .req-item { background: #1f293a; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid var(--gold); }
-        .upi-box { background: #000; color: #00e5ff; padding: 5px; border-radius: 4px; font-family: monospace; font-size: 11px; display: block; margin: 5px 0; }
-        .btn-pay { background: var(--green); color:white; border:none; padding:8px; border-radius:5px; width:100%; cursor:pointer; font-weight:bold; }
+        .req-item { background: #1f293a; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid var(--gold); position: relative; }
+        .upi-box { background: #000; color: #00e5ff; padding: 5px 8px; border-radius: 4px; font-family: monospace; display: block; margin: 5px 0; border: 1px dashed #444; }
+        .btn-group { display: flex; gap: 5px; margin-top: 8px; }
+        .btn { border: none; padding: 8px 15px; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; flex: 1; }
+        .btn-green { background: var(--green); }
+        .btn-red { background: var(--red); }
     </style>
-</head>
-<body>
-
-<div class="section">
-    <h3 style="display:flex; justify-content:space-between;">
-        <span><i class="fas fa-eye"></i> LIVE LOAD (GITHUB SYNC)</span>
-        <span id="curPeriod" style="color:#888; font-size:11px;">Period: --</span>
-    </h3>
-    <div class="bet-grid">
-        <div id="box-Green" class="bet-card" style="background:var(--green)" onclick="forceResult('Green')">GREEN<br>₹<span id="sumG">0</span></div>
-        <div id="box-Violet" class="bet-card" style="background:purple" onclick="forceResult('Violet')">VIOLET<br>₹<span id="sumV">0</span></div>
-        <div id="box-Red" class="bet-card" style="background:var(--red)" onclick="forceResult('Red')">RED<br>₹<span id="sumR">0</span></div>
-    </div>
-    <div class="num-grid" id="numBets"></div>
-</div>
-
-<div class="section">
-    <h3><i class="fas fa-university"></i> WITHDRAWALS</h3>
-    <div id="witList" class="req-list">Loading...</div>
-</div>
-
-<div class="section">
-    <h3><i class="fas fa-plus-circle"></i> DEPOSITS</h3>
-    <div id="depList" class="req-list">Loading...</div>
-</div>
-
-<script>
-    const firebaseConfig = { databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    // LIVE LOAD TRACKER logic
-    let currentPeriod = "";
-    setInterval(() => {
-        const now = new Date();
-        let pId = now.getFullYear().toString() + (now.getMonth()+1).toString().padStart(2,'0') + now.getDate().toString().padStart(2,'0') + "100" + Math.floor((now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds())/30);
-        if(currentPeriod !== pId) {
-            currentPeriod = pId;
-            document.getElementById('curPeriod').innerText = "Period: " + currentPeriod;
-            syncBets(currentPeriod);
-        }
-    }, 1000);
-
-    function syncBets(pId) {
-        db.ref('bets/' + pId).on('value', snap => {
-            let sums = { Green: 0, Red: 0, Violet: 0 };
-            let numSums = Array(10).fill(0);
-            
-            snap.forEach(c => {
-                let b = c.val();
-                let amt = Number(b.amt || 0);
-                if(typeof b.sel === 'number') numSums[b.sel] += amt;
-                else if(sums.hasOwnProperty(b.sel)) sums[b.sel] += amt;
-            });
-
-            // Update Colors & Blink High Load
-            const colors = ['Green', 'Violet', 'Red'];
-            let maxAmt = Math.max(sums.Green, sums.Violet, sums.Red);
-            colors.forEach(col => {
-                let el = document.getElementById('box-' + col);
-                document.getElementById('sum' + col.charAt(0)).innerText = sums[col];
-                el.classList.remove('high-load');
-                if(sums[col] === maxAmt && maxAmt > 0) el.classList.add('high-load');
-            });
-
-            // Update Numbers
-            let nHtml = ""; let maxNum = Math.max(...numSums);
-            for(let i=0; i<=9; i++) {
-                let risk = (numSums[i] === maxNum && maxNum > 0) ? 'high-load' : '';
-                nHtml += `<div class="num-box ${risk}" onclick="forceResult(${i})">${i}<br>₹${numSums[i]}</div>`;
-            }
-            document.getElementById('numBets').innerHTML = nHtml;
-        });
-    }
-
-    // Force Result Function (Updated for GitHub Sync)
-    function forceResult(val) {
-        db.ref('gameControl').update({
-            nextResult: val,
-            updateTime: firebase.database.ServerValue.TIMESTAMP 
-        }).then(() => {
-            db.ref('nextResult').set(val); // Double safety path
-            alert("GitHub Sync: Next Result set to " + val);
-        });
-    }
-
-    // Withdrawal & Deposit Fetch
-    db.ref('requests/withdrawals').on('value', snap => {
-        let h = "";
-        snap.forEach(c => {
-            let w = c.val();
-            if(w.status === 'pending' || !w.status) {
-                h += `<div class="req-item"><b>UID: ${w.uid}</b> <span style="float:right">₹${w.amount}</span><br>
-                <span class="upi-box">UPI: ${w.upi || (w.details?w.details.upi:'N/A')}</span>
-                <button class="btn-pay" onclick="db.ref('requests/withdrawals/${c.key}').update({status:'success'})">PAID</button></div>`;
-            }
-        });
-        document.getElementById('witList').innerHTML = h || "None";
-    });
-
-    db.ref('requests/deposits').on('value', snap => {
-        let h = "";
-        snap.forEach(c => {
-            let d = c.val();
-            if(d.status === 'pending' || !d.status) {
-                h += `<div class="req-item" style="border-left-color:var(--green)"><b>UID: ${d.uid}</b> <span style="float:right">₹${d.amount}</span><br>
-                <small>UTR: ${d.utr}</small><br>
-                <button class="btn-pay" style="background:var(--green)" onclick="approveDep('${c.key}','${d.uid}',${d.amount})">APPROVE</button></div>`;
-            }
-        });
-        document.getElementById('depList').innerHTML = h || "None";
-    });
-
-    function approveDep(k, u, a) {
-        db.ref('users/'+u+'/balance').transaction(c => (Number(c)||0)+a);
-        db.ref('requests/deposits/'+k).update({status:'success'});
-    }
-</script>
-</body>
-</html>
-
-    function forceRes(v) {
-        db.ref('gameControl/nextResult').set(v);
-        alert("Result Fixed: " + v);
-    }
-
-    // Live Bet Tracking Logic
-    setInterval(() => {
-        const now = new Date();
-        const pId = now.getFullYear().toString() + (now.getMonth()+1).toString().padStart(2,'0') + now.getDate().toString().padStart(2,'0') + Math.floor((now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds())/30);
-        document.getElementById('curPeriod').innerText = pId;
-        
-        db.ref('bets/' + pId).on('value', snap => {
-            let sums = { Green:0, Red:0, Violet:0 };
-            let numSums = Array(10).fill(0);
-            snap.forEach(c => {
-                let b = c.val();
-                if(typeof b.sel === 'number') numSums[b.sel] += Number(b.amt);
-                else sums[b.sel] += Number(b.amt);
-            });
-
-            // Color Highlights
-            const colors = ['Green', 'Violet', 'Red'];
-            let maxC = colors.reduce((a, b) => sums[a] > sums[b] ? a : b);
-            colors.forEach(c => {
-                document.getElementById('sum'+c.charAt(0)).innerText = sums[c];
-                document.getElementById('box-'+c).classList.toggle('high-load', sums[c] > 0 && c === maxC);
-            });
-
-            // Numbers Grid
-            let nHtml = ""; let maxN = Math.max(...numSums);
-            for(let i=0; i<=9; i++) {
-                let risk = (numSums[i] === maxN && maxN > 0) ? 'high-load' : '';
-                nHtml += `<div class="num-box ${risk}" onclick="forceRes(${i})">${i}<br>₹${numSums[i]}</div>`;
-            }
-            document.getElementById('numBets').innerHTML = nHtml;
-        });
-    }, 1000);
-</script>
-</body>
-</html>
 </head>
 <body>
 
@@ -220,7 +57,6 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // --- 1. LIVE BET LOGIC (With Load Highlighting) ---
     let currentPeriod = "";
     setInterval(() => {
         const now = new Date();
@@ -239,16 +75,14 @@
             
             snap.forEach(c => {
                 let b = c.val();
-                let amt = Number(b.amt || b.amount || 0);
-                let sel = b.sel || b.choice;
+                let amt = Number(b.amt || 0);
+                let sel = b.sel;
                 if(typeof sel === 'number') numSums[sel] += amt;
                 else if(sums.hasOwnProperty(sel)) sums[sel] += amt;
             });
 
-            // Update UI & Highlighting
             const colors = ['Green', 'Violet', 'Red'];
             let maxAmt = Math.max(sums.Green, sums.Violet, sums.Red);
-            
             colors.forEach(col => {
                 let el = document.getElementById('box-' + col);
                 document.getElementById('sum' + col.charAt(0)).innerText = sums[col];
@@ -266,42 +100,43 @@
         });
     }
 
+    // --- PERMANENT CONNECTION FIX ---
     function forceResult(val) {
-        db.ref('gameControl/nextResult').set(val); 
-        db.ref('nextResult').set(val); // Backup path
-        alert("Agla Result Fix: " + val);
+        // 'gameControl/nextResult' Address par data bhej rahe hain
+        db.ref('gameControl/nextResult').set(val)
+        .then(() => {
+            alert("🚀 Result Fixed: " + val + "\nAb game hamesha isi number par rukega jab tak timer khatam nahi hota.");
+        })
+        .catch((e) => {
+            alert("❌ Connection Error: " + e.message);
+        });
+        
+        // Backup ke liye purana path bhi update rakhte hain
+        db.ref('nextResult').set(val); 
     }
 
-    // --- 2. WITHDRAWAL LOGIC (Fixing UPI Display) ---
     db.ref('requests/withdrawals').on('value', snap => {
         let html = "";
         snap.forEach(child => {
             let w = child.val();
             if(w.status === 'pending' || !w.status) {
-                // Check all possible UPI paths
                 let upi = w.upi || (w.details ? (w.details.upi || w.details.upiId) : 'N/A');
-                html += `<div class="req-item">
-                    <b>UID: ${w.uid}</b> <span style="float:right; color:var(--red)">₹${w.amount}</span>
+                html += `<div class="req-item"><b>UID: ${w.uid}</b> <span style="float:right; color:var(--red)">₹${w.amount}</span>
                     <span class="upi-box">UPI: ${upi}</span>
                     <div class="btn-group">
                         <button class="btn btn-green" onclick="handleWit('${child.key}','success')">PAID</button>
                         <button class="btn btn-red" onclick="handleWit('${child.key}','rejected','${w.uid}',${w.amount})">REJECT</button>
-                    </div>
-                </div>`;
+                    </div></div>`;
             }
         });
-        document.getElementById('witList').innerHTML = html || "<p style='text-align:center;color:#555;'>No Withdrawals</p>";
+        document.getElementById('witList').innerHTML = html || "<p style='text-align:center;'>No Withdrawals</p>";
     });
 
     function handleWit(key, status, uid, amt) {
-        if(status === 'rejected') {
-            db.ref('users/'+uid+'/balance').transaction(c => (Number(c)||0) + Number(amt));
-        }
+        if(status === 'rejected') db.ref('users/'+uid+'/balance').transaction(c => (Number(c)||0) + Number(amt));
         db.ref('requests/withdrawals/'+key).update({ status: status });
-        alert("Request " + status);
     }
 
-    // --- 3. DEPOSIT LOGIC ---
     db.ref('requests/deposits').on('value', snap => {
         let html = "";
         snap.forEach(child => {
@@ -310,18 +145,17 @@
                 html += `<div class="req-item" style="border-left-color:var(--green)">
                     <b>UID: ${d.uid}</b> <span style="float:right; color:var(--green)">₹${d.amount}</span><br>
                     <small>UTR: ${d.utr || 'N/A'}</small>
-                    <button class="btn btn-green" style="margin-top:8px; width:100%" onclick="approveDep('${child.key}','${d.uid}',${d.amount})">APPROVE DEPOSIT</button>
-                </div>`;
+                    <button class="btn btn-green" style="margin-top:8px; width:100%" onclick="approveDep('${child.key}','${d.uid}',${d.amount})">APPROVE</button></div>`;
             }
         });
-        document.getElementById('depList').innerHTML = html || "<p style='text-align:center;color:#555;'>No Deposits</p>";
+        document.getElementById('depList').innerHTML = html || "<p style='text-align:center;'>No Deposits</p>";
     });
 
     function approveDep(key, uid, amt) {
         db.ref('users/'+uid+'/balance').transaction(c => (Number(c)||0) + Number(amt));
         db.ref('requests/deposits/'+key).update({ status: 'success' });
-        alert("Deposit Success!");
     }
 </script>
 </body>
 </html>
+>
