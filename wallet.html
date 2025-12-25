@@ -8,33 +8,132 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        :root { --orange: #ff9800; --green: #22c55e; --red: #ef4444; --bg: #0d131f; --card: #1f293a; }
-        body { margin: 0; background: var(--bg); font-family: sans-serif; color: white; padding: 15px; }
-        .back-btn { color: white; text-decoration: none; font-size: 18px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-        .balance-card { background: var(--card); padding: 25px; border-radius: 20px; text-align: center; border: 1px solid #2d3a4f; margin-bottom: 20px; }
-        .btn-group { display: flex; gap: 10px; margin-bottom: 30px; }
-        .btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
-        .btn-dep { background: #2196f3; color: white; }
-        .btn-wit { background: #334155; color: white; }
-        
-        .recharge-box { background: white; color: #333; padding: 20px; border-radius: 15px; }
-        .upi-copy { border: 2px dashed #2196f3; padding: 10px; border-radius: 10px; text-align: center; margin-bottom: 15px; cursor: pointer; color: #2196f3; font-weight: bold; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .sub-btn { width: 100%; background: var(--green); color: white; padding: 15px; border: none; border-radius: 10px; font-weight: bold; margin-top: 10px; }
-
-        /* Status Styles (Fixed) */
-        .status-tag { padding: 4px 8px; border-radius: 5px; font-size: 11px; font-weight: bold; }
+        :root { --blue: #3b82f6; --green: #22c55e; --red: #ef4444; --orange: #f59e0b; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0d131f; color: white; margin: 0; padding: 15px; }
+        .card { background: #1f293a; padding: 20px; border-radius: 15px; max-width: 450px; margin: auto; border: 1px solid #2d3a4f; }
+        .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; background: #0d131f; padding: 5px; border-radius: 10px; }
+        .tab { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; color: #888; background: none; font-weight: bold; }
+        .tab.active { background: var(--blue); color: white; }
+        .upi-box { background: rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 10px; border: 2px dashed var(--blue); text-align: center; margin: 15px 0; }
+        input { width: 100%; padding: 12px; margin-top: 5px; background: #0d131f; border: 1px solid #2d3a4f; border-radius: 8px; color: white; box-sizing: border-box; }
+        .btn-action { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: white; margin-top: 15px; }
+        .hist-item { display: flex; justify-content: space-between; padding: 12px; background: #0d131f; border-radius: 10px; margin-bottom: 8px; font-size: 14px; }
+        .status-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
         .pending { background: #fef3c7; color: #92400e; }
-        .approve { background: #dcfce7; color: #166534; }
+        .success { background: #dcfce7; color: #166534; }
         .rejected { background: #fee2e2; color: #991b1b; }
     </style>
 </head>
 <body>
 
-    <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Wallet</a>
+<div class="card">
+    <div class="top-nav">
+        <a href="index.html" style="color:white; text-decoration:none;"><i class="fas fa-chevron-left"></i> Back</a>
+        <div style="font-weight:bold;">Wallet</div>
+    </div>
+    
+    <div style="text-align: center; margin-bottom: 20px;">
+        <div style="color: #888; font-size: 14px;">Available Balance</div>
+        <div style="font-size: 32px; font-weight: bold;">₹<span id="headerBal">0.00</span></div>
+    </div>
 
-    <div class="balance-card">
-        <div style="font-size: 14px; opacity: 0.7;">Total Balance</div>
+    <div class="tabs">
+        <button class="tab active" id="tab-dep" onclick="showTab('deposit')">Deposit</button>
+        <button class="tab" id="tab-wit" onclick="showTab('withdraw')">Withdraw</button>
+    </div>
+
+    <div id="depositSec">
+        <div class="upi-box">
+            <small>Transfer to UPI ID</small>
+            <div style="font-size: 16px; font-weight: bold; margin: 5px 0;" id="adminUpi">deepakdeepaksingh103@oksbi</div>
+            <button onclick="copyUPI()" style="color:var(--blue); background:none; border:none; font-weight:bold; cursor:pointer;">COPY UPI</button>
+        </div>
+        <input type="number" id="depAmount" placeholder="Amount (Min ₹500)">
+        <input type="text" id="utrNumber" placeholder="12 Digit UTR Number">
+        <button class="btn-action" style="background:var(--green);" onclick="submitDeposit()">SUBMIT DEPOSIT</button>
+    </div>
+
+    <div id="withdrawSec" style="display:none;">
+        <input type="number" id="witAmount" placeholder="Amount (Min ₹500)">
+        <input type="text" id="witUpi" placeholder="Enter UPI ID (example@ybl)">
+        <button class="btn-action" style="background:var(--blue);" onclick="submitWithdraw()">WITHDRAW NOW</button>
+    </div>
+
+    <div style="margin-top: 30px;">
+        <h4 id="histTitle">Recent Deposits</h4>
+        <div id="histList"></div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = { databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const userId = localStorage.getItem('jalwa_id');
+
+    db.ref('users/' + userId + '/balance').on('value', snap => {
+        document.getElementById('headerBal').innerText = (snap.val() || 0).toFixed(2);
+    });
+
+    function showTab(type) {
+        document.getElementById('depositSec').style.display = type === 'deposit' ? 'block' : 'none';
+        document.getElementById('withdrawSec').style.display = type === 'withdraw' ? 'block' : 'none';
+        document.getElementById('tab-dep').classList.toggle('active', type === 'deposit');
+        document.getElementById('tab-wit').classList.toggle('active', type === 'withdraw');
+        document.getElementById('histTitle').innerText = type === 'deposit' ? 'Recent Deposits' : 'Recent Withdrawals';
+        loadHistory(type);
+    }
+
+    function loadHistory(type) {
+        const path = type === 'deposit' ? 'requests/deposits' : 'requests/withdrawals';
+        db.ref(path).orderByChild('uid').equalTo(userId).limitToLast(10).on('value', snap => {
+            let html = "";
+            snap.forEach(child => {
+                const data = child.val();
+                const statusClass = data.status || 'pending';
+                html += `<div class="hist-item">
+                    <div><b>₹${data.amount}</b><br><small>${new Date(data.time).toLocaleDateString()}</small></div>
+                    <div class="status-badge ${statusClass}">${statusClass.toUpperCase()}</div>
+                </div>`;
+            });
+            document.getElementById('histList').innerHTML = html || "No history found";
+        });
+    }
+
+    function copyUPI() {
+        const upi = document.getElementById('adminUpi').innerText;
+        navigator.clipboard.writeText(upi).then(() => alert("UPI Copied!"));
+    }
+
+    function submitDeposit() {
+        const amt = document.getElementById('depAmount').value;
+        const utr = document.getElementById('utrNumber').value;
+        if(amt < 500 || utr.length < 10) return alert("Fill correct details!");
+        db.ref('requests/deposits').push({ uid: userId, amount: Number(amt), utr: utr, status: 'pending', time: Date.now() })
+        .then(() => alert("Request Sent!"));
+    }
+
+    function submitWithdraw() {
+        const amt = Number(document.getElementById('witAmount').value);
+        const upi = document.getElementById('witUpi').value;
+        if(amt < 500 || !upi) return alert("Min ₹500 & UPI ID required");
+        
+        db.ref('users/' + userId + '/balance').transaction(bal => {
+            if(bal >= amt) return bal - amt;
+        }, (err, comm) => {
+            if(comm) {
+                db.ref('requests/withdrawals').push({ uid: userId, amount: amt, upi: upi, status: 'pending', time: Date.now() });
+                alert("Withdrawal Requested!");
+            } else alert("Insufficient Balance!");
+        });
+    }
+
+    loadHistory('deposit');
+</script>
+</body>
+</html>
+<div style="font-size: 14px; opacity: 0.7;">Total Balance</div>
         <div style="font-size: 36px; font-weight: bold; margin: 5px 0;">₹ <span id="balDisplay">0</span></div>
     </div>
 
