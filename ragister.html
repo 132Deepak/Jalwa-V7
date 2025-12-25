@@ -124,5 +124,38 @@
         });
     }
 </script>
-</body>
+<script>
+    const firebaseConfig = { databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function handleRegister() {
+        const name = document.getElementById('name').value;
+        const phone = document.getElementById('phone').value;
+        const pass = document.getElementById('pass').value;
+
+        if(!name || !phone || !pass) return alert("Bhai, saari details bharo!");
+
+        // Check if user already exists
+        db.ref('users').orderByChild('phone').equalTo(phone).once('value', (snap) => {
+            if(snap.exists()) {
+                alert("Mobile number pehle se registered hai!");
+            } else {
+                const newUser = db.ref('users').push();
+                newUser.set({
+                    name: name,
+                    phone: phone,
+                    password: pass,
+                    balance: 0,
+                    bonusClaimed: false
+                }).then(() => {
+                    localStorage.setItem('jalwa_id', newUser.key);
+                    alert("Account Created!");
+                    window.location.replace("index.html");
+                });
+            }
+        });
+    }
+</script>
+        </body>
 </html>
