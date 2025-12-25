@@ -2,38 +2,97 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Jalwa V7</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jalwa Pro - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f1f5f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .login-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 90%; max-width: 350px; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .link { margin-top: 15px; font-size: 14px; color: #64748b; }
+        :root { --bg: #0d131f; --card: #1f293a; --gold: #ff9800; }
+        body { margin: 0; background: #000; font-family: 'Segoe UI', sans-serif; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .auth-container { width: 90%; max-width: 400px; background: var(--bg); padding: 35px; border-radius: 30px; border: 1px solid #2d3a4f; text-align: center; }
+        h2 { margin-bottom: 30px; letter-spacing: 1px; }
+        .input-group { position: relative; margin-bottom: 20px; }
+        .input-group i { position: absolute; left: 15px; top: 18px; color: #64748b; }
+        input { width: 100%; background: var(--card); border: 1px solid #2d3a4f; padding: 15px 15px 15px 45px; border-radius: 15px; color: white; outline: none; box-sizing: border-box; }
+        .btn-login { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: bold; background: var(--gold); color: #000; cursor: pointer; }
+        .link { margin-top: 25px; font-size: 14px; color: #888; }
+        .link a { color: var(--gold); text-decoration: none; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="login-card">
-    <h2>Welcome Back</h2>
-    <div id="phoneInputSec">
-        <input type="tel" id="phoneNumber" placeholder="+91 0000000000">
-        <div id="recaptcha-container"></div>
-        <button onclick="sendOTP()">Send OTP</button>
-        <div class="link">Naye ho? <a href="ragister.html">Account banayein</a></div>
+<div class="auth-container">
+    <div style="font-size: 50px; color: var(--gold); margin-bottom: 15px;"><i class="fas fa-user-circle"></i></div>
+    <h2>PLAYER LOGIN</h2>
+    
+    <div class="input-group">
+        <i class="fas fa-phone"></i>
+        <input type="number" id="logPhone" placeholder="Phone Number">
     </div>
-    <div id="otpInputSec" style="display:none;">
-        <input type="number" id="otpCode" placeholder="Enter 6 Digit OTP">
-        <button onclick="verifyOTP()">Login Now</button>
+
+    <div class="input-group">
+        <i class="fas fa-lock"></i>
+        <input type="password" id="logPass" placeholder="Password">
     </div>
+
+    <button class="btn-login" onclick="handleLogin()">LOGIN TO PLAY</button>
+
+    <div class="link">New player? <a onclick="window.location.reload()">Create Account</a></div>
 </div>
 
 <script>
-    const firebaseConfig = { databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" };
-    firebase.initializeApp(firebaseConfig);
+    // Firebase Config (Don't change databaseURL)
+    const firebaseConfig = { 
+        databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" 
+    };
+    
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function handleLogin() {
+        const phone = document.getElementById('logPhone').value;
+        const pass = document.getElementById('logPass').value;
+
+        if(!phone || !pass) return alert("Bhai, Number aur Password daalo!");
+
+        // Loading alert
+        console.log("Checking for phone:", phone);
+
+        // Firebase se user check karein
+        db.ref('users').orderByChild('phone').equalTo(phone).once('value', (snap) => {
+            if(snap.exists()) {
+                const data = snap.val();
+                // User ki key nikaalein (JW-XXXX)
+                const userId = Object.keys(data)[0];
+                const userData = data[userId];
+
+                if(userData.password === pass || userData.pass === pass) {
+                    // ID save karein aur Dashboard par bhejein
+                    localStorage.setItem('jalwa_id', userId);
+                    alert("Login Success!");
+                    // Dashboard wali file ka naam yahan likhein (index.html ya dashboard.html)
+                    window.location.href = "index.html"; 
+                } else {
+                    alert("Wrong Password! Check karein.");
+                }
+            } else {
+                alert("Account nahi mila! Pehle Register karein.");
+            }
+        }).catch(err => {
+            alert("Database Error: " + err.message);
+        });
+    }
+
+    // Auto-login check
+    window.onload = () => {
+        if(localStorage.getItem('jalwa_id')) {
+            window.location.href = "index.html";
+        }
+    };
+</script>
+</body>
+</html>
     const auth = firebase.auth();
 
     window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 'size': 'invisible' });
