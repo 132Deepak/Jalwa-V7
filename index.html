@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jalwa Pro - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        body { margin: 0; background: #000; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .box { width: 90%; max-width: 380px; background: #0d131f; padding: 30px; border-radius: 25px; border: 1px solid #2d3a4f; text-align: center; }
+        input { width: 100%; padding: 15px; margin: 10px 0; background: #1f293a; border: 1px solid #2d3a4f; border-radius: 12px; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #ff9800; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2 style="color: #ff9800;">JALWA PRO LOGIN</h2>
+    <input type="number" id="ph" placeholder="Phone Number">
+    <input type="password" id="ps" placeholder="Password">
+    <button onclick="login()">LOGIN TO PLAY</button>
+    <p style="font-size: 13px; color: #888; margin-top: 15px;">New Player? <a href="register.html" style="color: #ff9800;">Register</a></p>
+</div>
+
+<script>
+    const firebaseConfig = { databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    
+    function login() {
+        const phone = document.getElementById('ph').value;
+        const pass = document.getElementById('ps').value;
+        if(!phone || !pass) return alert("Fill all details!");
+
+        firebase.database().ref('users').orderByChild('phone').equalTo(phone).once('value', (snap) => {
+            if(snap.exists()) {
+                const userId = Object.keys(snap.val())[0];
+                const userData = snap.val()[userId];
+                if(userData.password === pass) {
+                    localStorage.setItem('jalwa_id', userId);
+                    alert("Welcome!");
+                    window.location.href = "index.html";
+                } else { alert("Wrong Password!"); }
+            } else { alert("User Not Found!"); }
+        });
+    }
+</script>
+</body>
+</html>
