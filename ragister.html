@@ -80,6 +80,34 @@
                 }).then(() => {
                     localStorage.setItem('jalwa_id', userId);
                     alert("Registration Successful! ID: " + userId);
+                    window.location.href = "index.html";
+                });
+            }
+        });
+    }
+</script>
+</body>
+</html>
+        if(!name || !phone || !pass) return alert("Please fill all details!");
+        if(phone.length < 10) return alert("Enter valid phone number!");
+
+        const userId = "JALWA-" + Math.floor(100000 + Math.random() * 900000);
+
+        // Check if phone already exists
+        db.ref('users').orderByChild('phone').equalTo(phone).once('value', (snap) => {
+            if(snap.exists()) {
+                alert("Phone number already registered!");
+            } else {
+                db.ref('users/' + userId).set({
+                    name: name,
+                    phone: phone,
+                    password: pass,
+                    balance: 0,
+                    bonusClaimed: false,
+                    userId: userId
+                }).then(() => {
+                    localStorage.setItem('jalwa_id', userId);
+                    alert("Registration Successful! ID: " + userId);
                     window.location.href = "dashboard.html";
                 });
             }
