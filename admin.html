@@ -3,37 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jalwa V2 - Final Master Admin</title>
+    <title>Jalwa Pro - Master Admin</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --bg: #0b0f19; --card: #161d2b; --gold: #ff9800; --green: #00c853; --red: #ff5252; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding: 10px; overflow-x: hidden; }
-        
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding: 10px; }
         .section { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #2d3a4f; margin-bottom: 15px; }
-        h3 { color: var(--gold); margin-top: 0; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; }
-        
-        /* High Load Blinking Alert */
-        .high-load { background: var(--red) !important; animation: blink 0.6s infinite; border: 2px solid white !important; box-shadow: 0 0 15px var(--red); }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-
-        /* Tables & Lists */
-        .req-list { max-height: 250px; overflow-y: auto; }
-        .req-item { background: #1f293a; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid var(--gold); position: relative; }
-        .upi-box { background: #000; color: #00e5ff; padding: 5px 8px; border-radius: 4px; font-family: monospace; display: block; margin: 5px 0; border: 1px dashed #444; }
-        
-        .btn-group { display: flex; gap: 5px; margin-top: 8px; }
-        .btn { border: none; padding: 8px 15px; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; flex: 1; }
-        .btn-green { background: var(--green); }
-        .btn-red { background: var(--red); }
-
-        /* Bet Monitor */
-        .bet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-        .bet-card { padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; cursor: pointer; border: 1px solid #333; transition: 0.3s; }
-        .num-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
-        .num-box { background: #1f293a; padding: 10px; border-radius: 5px; text-align: center; cursor: pointer; border: 1px solid #333; font-size: 14px; }
+        .high-load { background: var(--red) !important; animation: blink 0.6s infinite; border: 2px solid white !important; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .bet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .bet-card { padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; cursor: pointer; border: 1px solid #333; }
+        .num-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 10px; }
+        .num-box { background: #1f293a; padding: 10px; border-radius: 5px; text-align: center; cursor: pointer; border: 1px solid #333; }
     </style>
+</head>
+<body>
+
+<div class="section">
+    <h3>LIVE MONITOR (Period: <span id="curPeriod">--</span>)</h3>
+    <div class="bet-grid">
+        <div id="box-Green" class="bet-card" style="background:var(--green)" onclick="forceRes('Green')">GREEN<br>₹<span id="sumG">0</span></div>
+        <div id="box-Violet" class="bet-card" style="background:purple" onclick="forceRes('Violet')">VIOLET<br>₹<span id="sumV">0</span></div>
+        <div id="box-Red" class="bet-card" style="background:var(--red)" onclick="forceRes('Red')">RED<br>₹<span id="sumR">0</span></div>
+    </div>
+    <div class="num-grid" id="numBets"></div>
+</div>
+
+<script>
+    const firebaseConfig = { databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function forceRes(v) {
+        db.ref('gameControl/nextResult').set(v);
+        alert("Result Fixed: " + v);
+    }
+
+    // Live Bet Tracking Logic
+    setInterval(() => {
+        const now = new Date();
+        const pId = now.getFullYear().toString() + (now.getMonth()+1).toString().padStart(2,'0') + now.getDate().toString().padStart(2,'0') + Math.floor((now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds())/30);
+        document.getElementById('curPeriod').innerText = pId;
+        
+        db.ref('bets/' + pId).on('value', snap => {
+            let sums = { Green:0, Red:0, Violet:0 };
+            let numSums = Array(10).fill(0);
+            snap.forEach(c => {
+                let b = c.val();
+                if(typeof b.sel === 'number') numSums[b.sel] += Number(b.amt);
+                else sums[b.sel] += Number(b.amt);
+            });
+
+            // Color Highlights
+            const colors = ['Green', 'Violet', 'Red'];
+            let maxC = colors.reduce((a, b) => sums[a] > sums[b] ? a : b);
+            colors.forEach(c => {
+                document.getElementById('sum'+c.charAt(0)).innerText = sums[c];
+                document.getElementById('box-'+c).classList.toggle('high-load', sums[c] > 0 && c === maxC);
+            });
+
+            // Numbers Grid
+            let nHtml = ""; let maxN = Math.max(...numSums);
+            for(let i=0; i<=9; i++) {
+                let risk = (numSums[i] === maxN && maxN > 0) ? 'high-load' : '';
+                nHtml += `<div class="num-box ${risk}" onclick="forceRes(${i})">${i}<br>₹${numSums[i]}</div>`;
+            }
+            document.getElementById('numBets').innerHTML = nHtml;
+        });
+    }, 1000);
+</script>
+</body>
+</html>
 </head>
 <body>
 
