@@ -16,24 +16,158 @@
         .avatar { width: 40px; height: 40px; background: var(--gold); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #000; font-weight: bold; }
         .wallet-box { margin: 15px; padding: 25px; background: linear-gradient(135deg, #1e3a8a, #1e40af); border-radius: 24px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .bonus-card { margin: 0 15px 15px; background: linear-gradient(90deg, #ff416c, #ff4b2b); padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 5px 15px rgba(255,65,108,0.3); }
+        
+        /* Refer Card Style */
+        .refer-card { margin: 0 15px 15px; background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 20px; padding: 20px; border: 1px dashed var(--gold); }
+        .share-btn { width: 100%; background: var(--gold); color: #000; border: none; padding: 12px; border-radius: 10px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+
         .game-launch-banner { margin: 10px 15px; background: linear-gradient(45deg, #1a1a1a, #2d3a4f); border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid #3d4b5f; cursor: pointer; position: relative; }
         .game-icon { width: 60px; height: 60px; background: var(--gold); border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 30px; color: #000; }
         .play-tag { position: absolute; right: 20px; background: var(--gold); color: #000; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; }
         .menu-list { margin: 20px 15px; }
         .menu-item { background: var(--card); padding: 15px; border-radius: 15px; display: flex; align-items: center; gap: 15px; margin-bottom: 12px; cursor: pointer; border: 1px solid #2d3a4f; transition: 0.3s; }
-        .menu-item:active { transform: scale(0.96); }
         .menu-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        .issue-box { background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 15px; padding: 10px; margin-top: 5px; }
-        .issue-btn { background: var(--card); padding: 12px; border-radius: 10px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; font-size: 13px; border: 1px solid #2d3a4f; cursor: pointer; }
-        .page-view { display: none; }
-        .page-view.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: #161e2b; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #2d3a4f; z-index: 1000; }
         .nav-item { text-align: center; color: #64748b; cursor: pointer; flex: 1; font-size: 11px; }
         .nav-item.active { color: var(--gold); }
         .nav-item i { font-size: 22px; margin-bottom: 4px; display: block; }
+        .page-view { display: none; }
+        .page-view.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
+<body>
+
+<div class="app-container">
+    <div class="header">
+        <div class="user-pill">
+            <div class="avatar" id="avatarIcon">J</div>
+            <div>
+                <div style="font-size: 10px; color: #888;">ID: <span id="uID">...</span></div>
+                <div id="uNameDisplay" style="font-weight: bold; font-size: 13px;">Welcome Back</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="home" class="page-view active">
+        <div class="wallet-box">
+            <div style="font-size: 13px; opacity: 0.8;">Total Assets</div>
+            <div style="font-size: 32px; font-weight: bold; margin: 5px 0;">₹ <span id="mainBal">0.00</span></div>
+            <div style="font-size: 11px; color: #4ade80;"><i class="fas fa-shield-alt"></i> Secure Wallet</div>
+        </div>
+
+        <div class="refer-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <b style="color: var(--gold); font-size: 14px;">REFER & EARN</b><br>
+                    <small style="color: #888;">Get up to ₹500/friend</small>
+                </div>
+                <i class="fas fa-users" style="color: var(--gold); font-size: 20px;"></i>
+            </div>
+            <p style="font-size: 11px; color: #ccc; margin: 10px 0;">Share link with friends. Reward adds after their first recharge of ₹500 or ₹1000.</p>
+            <button class="share-btn" onclick="copyReferLink()"><i class="fas fa-share-alt"></i> COPY REFER LINK</button>
+        </div>
+
+        <div class="bonus-card">
+            <div><b style="font-size: 14px;">₹20 Daily Gift</b><br><small>One-time Reward</small></div>
+            <button id="claimBtn" onclick="claimBonus()" style="background: white; color: #ff4b2b; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;">CLAIM</button>
+        </div>
+
+        <div class="game-launch-banner" onclick="location.href='game.html'">
+            <div class="game-icon"><i class="fas fa-gamepad"></i></div>
+            <div class="game-info"><h3>WinGo 30s</h3><p>Real Cash Game</p></div>
+            <div class="play-tag">PLAY</div>
+        </div>
+    </div>
+
+    <div id="wallet" class="page-view">
+        <div style="padding: 20px; text-align: center;">
+            <div class="wallet-box" style="margin: 0 0 20px 0;">
+                <div style="font-size: 14px; opacity: 0.8;">Wallet Balance</div>
+                <div style="font-size: 30px; font-weight: bold;">₹ <span id="walletBal">0.00</span></div>
+            </div>
+            <button onclick="location.href='wallet.html'" style="width: 100%; padding: 18px; background: var(--blue); color: white; border: none; border-radius: 15px; font-weight: bold; font-size: 16px;">
+                <i class="fas fa-wallet"></i> OPEN WALLET
+            </button>
+        </div>
+    </div>
+
+    <div id="account" class="page-view">
+        <div style="padding: 20px;">
+            <div style="background: var(--card); padding: 30px; border-radius: 25px; text-align: center; border: 1px solid #2d3a4f;">
+                <div class="avatar" style="width: 80px; height: 80px; margin: auto; font-size: 35px; border: 3px solid var(--gold);" id="bigAvatar">J</div>
+                <div style="margin-top: 15px;">
+                    <div style="color: #888; font-size: 12px; letter-spacing: 1px;">GAME ID</div>
+                    <h2 id="profID" style="margin: 5px 0; color: var(--gold); letter-spacing: 1px;">...</h2>
+                </div>
+            </div>
+            <button onclick="logout()" style="width: 100%; background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid #ef4444; padding: 15px; border-radius: 15px; margin-top: 20px; font-weight: bold; cursor: pointer;">LOGOUT</button>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="showPage('home', this)"><i class="fas fa-house"></i>Home</div>
+        <div class="nav-item" onclick="showPage('wallet', this)"><i class="fas fa-wallet"></i>Wallet</div>
+        <div class="nav-item" onclick="showPage('account', this)"><i class="fas fa-user"></i>Account</div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = { databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const userId = localStorage.getItem('jalwa_id');
+    if(!userId) window.location.replace("login.html");
+
+    function showPage(id, el) {
+        document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    window.onload = () => {
+        db.ref('users/' + userId).on('value', (snap) => {
+            const data = snap.val();
+            if(data) {
+                document.getElementById('uID').innerText = userId;
+                document.getElementById('profID').innerText = userId;
+                document.getElementById('uNameDisplay').innerText = data.name || "User";
+                let val = Number(data.balance || 0);
+                document.getElementById('mainBal').innerText = val.toFixed(2);
+                document.getElementById('walletBal').innerText = val.toFixed(2);
+                if(data.bonusClaimed) {
+                    const btn = document.getElementById('claimBtn');
+                    btn.innerText = "CLAIMED"; btn.disabled = true; btn.style.opacity = "0.5";
+                }
+            }
+        });
+    };
+
+    function claimBonus() {
+        db.ref('users/' + userId).once('value', snap => {
+            if(snap.val().bonusClaimed) return alert("Already Claimed!");
+            db.ref('users/' + userId).update({
+                balance: (Number(snap.val().balance) || 0) + 20,
+                bonusClaimed: true
+            });
+            alert("₹20 Bonus Added!");
+        });
+    }
+
+    function copyReferLink() {
+        // Replace with your GitHub URL
+        const myLink = "https://132deepak.github.io/Jalwa/register.html?ref=" + userId;
+        navigator.clipboard.writeText(myLink).then(() => {
+            alert("Referral Link Copied! Send to friends.");
+        });
+    }
+
+    function logout() { localStorage.clear(); window.location.replace("login.html"); }
+</script>
+</body>
+</html>
 <body>
 
 <div class="app-container">
