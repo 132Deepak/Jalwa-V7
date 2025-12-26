@@ -33,14 +33,19 @@
         th { background: #1f293a; padding: 12px; color: #888; font-size: 12px; }
         td { padding: 12px; border-bottom: 1px solid #2a3544; font-size: 14px; }
         
-        /* New Multiplier Styles */
+        /* Bet Selection Popup Styles */
         .bet-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: #fff; border-radius: 20px 20px 0 0; transition: 0.3s; z-index: 2000; padding: 20px; color: #333; box-sizing: border-box; }
         .bet-sheet.active { bottom: 0; }
-        .mul-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin: 15px 0; }
-        .mul-btn { padding: 8px 2px; border: 1px solid #ddd; border-radius: 5px; background: #f8f9fa; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .mul-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 15px 0; }
+        .mul-btn { padding: 10px 5px; border: 1px solid #ddd; border-radius: 8px; background: #f8f9fa; cursor: pointer; font-size: 14px; font-weight: bold; color: #333; }
         .mul-btn.active { background: var(--gold); color: white; border-color: var(--gold); }
-        .amt-btn { padding: 10px; border: none; border-radius: 8px; background: #eee; cursor: pointer; font-weight: bold; flex: 1; }
+        .amt-btn { padding: 12px; border: none; border-radius: 8px; background: #eee; cursor: pointer; font-weight: bold; flex: 1; color: #333; }
         .amt-btn.active { background: #333; color: white; }
+
+        /* Professional Success Toast */
+        #successToast { visibility: hidden; min-width: 200px; background-color: var(--primary-green); color: white; text-align: center; border-radius: 50px; padding: 16px; position: fixed; z-index: 5000; left: 50%; top: 50%; transform: translate(-50%, -50%); font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        #successToast.show { visibility: visible; animation: popIn 2s; }
+        @keyframes popIn { 0% {transform: translate(-50%, -50%) scale(0.5); opacity: 0;} 20% {transform: translate(-50%, -50%) scale(1.1); opacity: 1;} 30% {transform: translate(-50%, -50%) scale(1); opacity: 1;} 80% {opacity: 1;} 100% {opacity: 0;} }
 
         .res-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: #fff; width: 85%; border-radius: 20px; z-index: 3000; transition: 0.3s; padding: 25px; text-align: center; color: #333; box-sizing: border-box; }
         .res-popup.active { transform: translate(-50%, -50%) scale(1); }
@@ -50,6 +55,7 @@
 </head>
 <body>
 
+<div id="successToast">Bet Success!</div>
 <div class="overlay" id="overlay" onclick="closeSheet()"></div>
 
 <div class="app-container">
@@ -101,14 +107,15 @@
 
 <div id="betSheet" class="bet-sheet">
     <h3 id="sheetTitle" style="margin-top:0">Select</h3>
-    <p style="margin: 10px 0 5px; font-size: 14px; color: #666;">Amount</p>
+    
+    <p style="margin: 10px 0 5px; font-size: 14px; color: #666;">Select Amount</p>
     <div style="display:flex; gap:10px;">
         <button class="amt-btn active" id="btn10" onclick="setBaseAmt(10)">10</button>
         <button class="amt-btn" id="btn100" onclick="setBaseAmt(100)">100</button>
         <button class="amt-btn" id="btn1000" onclick="setBaseAmt(1000)">1000</button>
     </div>
 
-    <p style="margin: 15px 0 5px; font-size: 14px; color: #666;">Multiplier</p>
+    <p style="margin: 15px 0 5px; font-size: 14px; color: #666;">Choose Multiplier</p>
     <div class="mul-grid">
         <button class="mul-btn active" onclick="setMul(1, this)">X1</button>
         <button class="mul-btn" onclick="setMul(5, this)">X5</button>
@@ -118,14 +125,17 @@
         <button class="mul-btn" onclick="setMul(100, this)">X100</button>
     </div>
 
-    <div style="font-weight:bold; font-size: 18px; text-align: center; margin-top: 15px;">Total Payable: <span style="color:#d50000">₹<span id="totalBetTxt">10</span></span></div>
-    <button onclick="confirmBet()" id="confBtn" style="width:100%; padding:15px; border:none; border-radius:10px; color:white; font-weight:bold; font-size:18px; margin-top:15px; cursor:pointer;">Confirm Bet</button>
-    <button onclick="closeSheet()" style="width:100%; background:none; border:none; color:#888; margin-top:10px;">Cancel</button>
+    <div style="font-weight:bold; font-size: 20px; text-align: center; margin-top: 20px; color: #333;">
+        Total: <span style="color:#d50000">₹<span id="totalBetTxt">10</span></span>
+    </div>
+    
+    <button onclick="confirmBet()" id="confBtn" style="width:100%; padding:15px; border:none; border-radius:10px; color:white; font-weight:bold; font-size:18px; margin-top:15px; cursor:pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">Confirm Bet</button>
+    <button onclick="closeSheet()" style="width:100%; background:none; border:none; color:#888; margin-top:10px; font-weight: 500;">Cancel</button>
 </div>
 
 <div id="resPopup" class="res-popup">
     <h2 id="resStat" style="margin:0; color:var(--gold)">Result</h2>
-    <div style="font-size: 20px; margin: 15px 0;"><span id="resAmt" style="font-weight:bold;">₹0.00</span></div>
+    <div style="font-size: 22px; margin: 15px 0;"><span id="resAmt" style="font-weight:bold;">₹0.00</span></div>
     <button onclick="closeRes()" style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:10px; font-weight:bold;">OK</button>
 </div>
 
@@ -177,7 +187,6 @@
         document.getElementById('confBtn').style.background = col;
         document.getElementById('betSheet').classList.add('active');
         document.getElementById('overlay').classList.add('active');
-        // Reset defaults when opening
         setBaseAmt(10);
         setMul(1, document.querySelector('.mul-btn'));
     }
@@ -192,7 +201,6 @@
         document.getElementById('overlay').classList.remove('active');
     }
 
-    // New Bet Selection Functions
     function setBaseAmt(a) {
         baseAmt = a;
         document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('active'));
@@ -212,138 +220,17 @@
         document.getElementById('totalBetTxt').innerText = currentBetAmt;
     }
 
+    function showSuccess() {
+        const toast = document.getElementById('successToast');
+        toast.className = "show";
+        setTimeout(() => { toast.className = ""; }, 2000);
+    }
+
     function confirmBet() {
-        if(balance < currentBetAmt) return alert("Insufficient Balance!");
-        
-        database.ref('users/' + userId + '/balance').transaction((curr) => (curr || 0) - currentBetAmt)
-        .then(() => {
-            let bet = { sel: selection, amt: currentBetAmt, period: currentPeriod };
-            activeBets.push(bet);
-            database.ref('bets/' + currentPeriod).push({ uid: userId, sel: selection, amt: currentBetAmt });
-            closeSheet();
-            alert("Bet Placed!");
-        });
-    }
-
-    async function processRoundResult(oldPid) {
-        let winNum;
-        try {
-            const snap = await database.ref('gameControl/nextResult').once('value');
-            const forced = snap.val();
-            if (forced !== null && forced !== undefined) {
-                if (typeof forced === 'string') {
-                    if (forced === 'Green') winNum = [1, 3, 7, 9][Math.floor(Math.random() * 4)];
-                    else if (forced === 'Red') winNum = [2, 4, 6, 8][Math.floor(Math.random() * 4)];
-                    else winNum = [0, 5][Math.floor(Math.random() * 2)];
-                } else { winNum = parseInt(forced); }
-                database.ref('gameControl/nextResult').remove();
-            } else { winNum = Math.floor(Math.random() * 10); }
-        } catch(e) { winNum = Math.floor(Math.random() * 10); }
-
-        let winCol = (winNum === 0 || winNum === 5) ? "Violet" : (winNum % 2 === 0 ? "Red" : "Green");
-        let row = `<tr><td>${oldPid.slice(-4)}</td><td style="color:${winNum%2===0?'red':'green'}">${winNum}</td><td>${winCol}</td></tr>`;
-        document.getElementById('chartBody').insertAdjacentHTML('afterbegin', row);
-
-        activeBets.forEach(bet => {
-            if(bet.period === oldPid) {
-                let isWin = false;
-                if (bet.sel === winNum) isWin = true;
-                else if (bet.sel === 'Red' && (winNum % 2 === 0 && winNum !== 0)) isWin = true;
-                else if (bet.sel === 'Green' && (winNum % 2 !== 0 && winNum !== 5)) isWin = true;
-                else if (bet.sel === 'Violet' && (winNum === 0 || winNum === 5)) isWin = true;
-
-                if(isWin) {
-                    let winAmt = bet.amt * (typeof bet.sel === 'number' ? 8.8 : 1.9);
-                    database.ref('users/' + userId + '/balance').transaction(c => (c || 0) + winAmt);
-                    document.getElementById('resStat').innerText = "WINNER!";
-                    document.getElementById('resAmt').innerText = "+ ₹" + winAmt.toFixed(2);
-                } else {
-                    document.getElementById('resStat').innerText = "LOSS";
-                    document.getElementById('resAmt').innerText = "- ₹" + bet.amt;
-                }
-                document.getElementById('resPopup').classList.add('active');
-                document.getElementById('overlay').classList.add('active');
-                
-                let status = isWin ? `<span style="color:green">Win</span>` : `<span style="color:red">Loss</span>`;
-                let histRow = `<tr><td>${oldPid.slice(-4)}</td><td>${bet.sel}</td><td>${bet.amt}</td><td>${status}</td></tr>`;
-                document.getElementById('myHistoryBody').insertAdjacentHTML('afterbegin', histRow);
-            }
-        });
-        activeBets = [];
-    }
-
-    function switchTab(type, btn) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('chartContainer').style.display = type === 'chart' ? 'block' : 'none';
-        document.getElementById('myBetContainer').style.display = type === 'mybet' ? 'block' : 'none';
-    }
-</script>
-</body>
-</html>
-k = () => openBet(i, (i%2===0)?'#d50000':'#00c853');
-            grid.appendChild(d);
+        if(balance < currentBetAmt) {
+            alert("Insufficient Balance!"); // Ye tab aayega jab paise kam honge
+            return;
         }
-    };
-
-    setInterval(() => {
-        const now = new Date();
-        let sec = now.getSeconds();
-        let rem = 30 - (sec % 30);
-        let pId = now.getFullYear().toString() + (now.getMonth()+1).toString().padStart(2,'0') + now.getDate().toString().padStart(2,'0') + "30" + Math.floor((now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds())/30);
-        
-        if (currentPeriod !== pId && currentPeriod !== "") { processRoundResult(currentPeriod); }
-        currentPeriod = pId;
-        document.getElementById('periodId').innerText = currentPeriod;
-        let s = rem.toString().padStart(2, '0');
-        document.getElementById('t1').innerText = s[0];
-        document.getElementById('t2').innerText = s[1];
-        if(rem <= 5) closeSheet();
-    }, 1000);
-
-    function openBet(sel, col) {
-        selection = sel;
-        document.getElementById('sheetTitle').innerText = "Select " + sel;
-        document.getElementById('confBtn').style.background = col;
-        document.getElementById('betSheet').classList.add('active');
-        document.getElementById('overlay').classList.add('active');
-        // Reset defaults when opening
-        setBaseAmt(10);
-        setMul(1, document.querySelector('.mul-btn'));
-    }
-
-    function closeSheet() {
-        document.getElementById('betSheet').classList.remove('active');
-        document.getElementById('overlay').classList.remove('active');
-    }
-
-    function closeRes() {
-        document.getElementById('resPopup').classList.remove('active');
-        document.getElementById('overlay').classList.remove('active');
-    }
-
-    // New Bet Selection Functions
-    function setBaseAmt(a) {
-        baseAmt = a;
-        document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('btn' + a).classList.add('active');
-        updateTotal();
-    }
-
-    function setMul(m, btn) {
-        multiplier = m;
-        document.querySelectorAll('.mul-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        updateTotal();
-    }
-
-    function updateTotal() {
-        currentBetAmt = baseAmt * multiplier;
-        document.getElementById('totalBetTxt').innerText = currentBetAmt;
-    }
-
-    function confirmBet() {
-        if(balance < currentBetAmt) return alert("Insufficient Balance!");
         
         database.ref('users/' + userId + '/balance').transaction((curr) => (curr || 0) - currentBetAmt)
         .then(() => {
@@ -351,7 +238,7 @@ k = () => openBet(i, (i%2===0)?'#d50000':'#00c853');
             activeBets.push(bet);
             database.ref('bets/' + currentPeriod).push({ uid: userId, sel: selection, amt: currentBetAmt });
             closeSheet();
-            alert("Bet Placed!");
+            showSuccess(); // Localhost alert ki jagah professional toast
         });
     }
 
@@ -411,95 +298,4 @@ k = () => openBet(i, (i%2===0)?'#d50000':'#00c853');
 </script>
 </body>
 </html>
-d('active');
-    }
 
-    function closeSheet() {
-        document.getElementById('betSheet').classList.remove('active');
-        document.getElementById('overlay').classList.remove('active');
-    }
-
-    function closeRes() {
-        document.getElementById('resPopup').classList.remove('active');
-        document.getElementById('overlay').classList.remove('active');
-    }
-
-    function setAmt(a) { currentBetAmt = a; document.getElementById('totalBetTxt').innerText = a; }
-
-    function confirmBet() {
-        if(balance < currentBetAmt) return alert("Insufficient Balance!");
-        
-        database.ref('users/' + userId + '/balance').transaction((curr) => (curr || 0) - currentBetAmt)
-        .then(() => {
-            let bet = { sel: selection, amt: currentBetAmt, period: currentPeriod };
-            activeBets.push(bet);
-            // Admin Load Tracker sync
-            database.ref('bets/' + currentPeriod).push({ uid: userId, sel: selection, amt: currentBetAmt });
-            closeSheet();
-            alert("Bet Placed!");
-        });
-    }
-
-    async function processRoundResult(oldPid) {
-        let winNum;
-        try {
-            // --- ADMIN CONTROL CHECK ---
-            const snap = await database.ref('gameControl/nextResult').once('value');
-            const forced = snap.val();
-            
-            if (forced !== null && forced !== undefined) {
-                if (typeof forced === 'string') {
-                    if (forced === 'Green') winNum = [1, 3, 7, 9][Math.floor(Math.random() * 4)];
-                    else if (forced === 'Red') winNum = [2, 4, 6, 8][Math.floor(Math.random() * 4)];
-                    else winNum = [0, 5][Math.floor(Math.random() * 2)];
-                } else {
-                    winNum = parseInt(forced);
-                }
-                database.ref('gameControl/nextResult').remove(); // Reset for next round
-            } else {
-                winNum = Math.floor(Math.random() * 10);
-            }
-        } catch(e) { winNum = Math.floor(Math.random() * 10); }
-
-        let winCol = (winNum === 0 || winNum === 5) ? "Violet" : (winNum % 2 === 0 ? "Red" : "Green");
-
-        let row = `<tr><td>${oldPid.slice(-4)}</td><td style="color:${winNum%2===0?'red':'green'}">${winNum}</td><td>${winCol}</td></tr>`;
-        document.getElementById('chartBody').insertAdjacentHTML('afterbegin', row);
-
-        activeBets.forEach(bet => {
-            if(bet.period === oldPid) {
-                let isWin = false;
-                if (bet.sel === winNum) isWin = true;
-                else if (bet.sel === 'Red' && (winNum % 2 === 0 && winNum !== 0)) isWin = true;
-                else if (bet.sel === 'Green' && (winNum % 2 !== 0 && winNum !== 5)) isWin = true;
-                else if (bet.sel === 'Violet' && (winNum === 0 || winNum === 5)) isWin = true;
-
-                if(isWin) {
-                    let winAmt = bet.amt * (typeof bet.sel === 'number' ? 8.8 : 1.9);
-                    database.ref('users/' + userId + '/balance').transaction(c => (c || 0) + winAmt);
-                    document.getElementById('resStat').innerText = "WINNER!";
-                    document.getElementById('resAmt').innerText = "+ ₹" + winAmt.toFixed(2);
-                } else {
-                    document.getElementById('resStat').innerText = "LOSS";
-                    document.getElementById('resAmt').innerText = "- ₹" + bet.amt;
-                }
-                document.getElementById('resPopup').classList.add('active');
-                document.getElementById('overlay').classList.add('active');
-                
-                let status = isWin ? `<span style="color:green">Win</span>` : `<span style="color:red">Loss</span>`;
-                let histRow = `<tr><td>${oldPid.slice(-4)}</td><td>${bet.sel}</td><td>${bet.amt}</td><td>${status}</td></tr>`;
-                document.getElementById('myHistoryBody').insertAdjacentHTML('afterbegin', histRow);
-            }
-        });
-        activeBets = [];
-    }
-
-    function switchTab(type, btn) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('chartContainer').style.display = type === 'chart' ? 'block' : 'none';
-        document.getElementById('myBetContainer').style.display = type === 'mybet' ? 'block' : 'none';
-    }
-</script>
-</body>
-</tu
