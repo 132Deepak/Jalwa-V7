@@ -8,7 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        :root { --bg: #0d131f; --card: #1f293a; --gold: #ff9800; --blue: #2196f3; }
+        :root { --bg: #0d131f; --card: #1f293a; --gold: #ff9800; --blue: #2196f3; --green: #00c853; --red: #ff5252; }
         body { margin: 0; background: #000; font-family: 'Segoe UI', sans-serif; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         .auth-container { width: 90%; max-width: 400px; background: var(--bg); padding: 30px; border-radius: 30px; border: 1px solid #2d3a4f; box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center; }
         .logo { font-size: 40px; color: var(--gold); margin-bottom: 10px; }
@@ -23,9 +23,16 @@
         .link { margin-top: 20px; font-size: 14px; color: #888; }
         .link a { color: var(--gold); text-decoration: none; font-weight: bold; }
         .ref-tag { font-size: 11px; color: #4ade80; margin-bottom: 15px; display: none; }
+
+        /* Professional Toast Style - Fixes "Localhost" Error */
+        #customToast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 12px; padding: 16px; position: fixed; z-index: 10001; left: 50%; top: 50%; transform: translate(-50%, -50%); font-weight: bold; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #444; }
+        #customToast.show { visibility: visible; animation: fadeInOut 2.5s; }
+        @keyframes fadeInOut { 0% {opacity: 0; transform: translate(-50%, -40%);} 15% {opacity: 1; transform: translate(-50%, -50%);} 85% {opacity: 1; transform: translate(-50%, -50%);} 100% {opacity: 0; transform: translate(-50%, -60%);} }
     </style>
 </head>
 <body>
+
+<div id="customToast">Action Success!</div>
 
 <div class="auth-container">
     <div class="logo"><i class="fas fa-gamepad"></i></div>
@@ -48,7 +55,7 @@
         <input type="password" id="regPass" placeholder="Create Password">
     </div>
 
-    <button class="btn btn-reg" onclick="handleRegister()">REGISTER NOW</button>
+    <button class="btn btn-reg" id="regBtn" onclick="handleRegister()">REGISTER NOW</button>
 
     <div class="link">Already have an account? <a href="login.html">Login</a></div>
 </div>
@@ -58,7 +65,6 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // URL se Referral ID nikalne ke liye logic
     const urlParams = new URLSearchParams(window.location.search);
     const refBy = urlParams.get('ref') || "DIRECT";
 
@@ -66,19 +72,34 @@
         document.getElementById('refStatus').style.display = "block";
     }
 
-    function handleRegister() {
-        const name = document.getElementById('regName').value;
-        const phone = document.getElementById('regPhone').value;
-        const pass = document.getElementById('regPass').value;
+    // Custom function to show messages without Localhost alert
+    function showMsg(msg, isError = false) {
+        const t = document.getElementById("customToast");
+        t.innerText = msg;
+        t.style.backgroundColor = isError ? "#ff5252" : "#00c853";
+        t.className = "show";
+        setTimeout(() => { t.className = ""; }, 2500);
+    }
 
-        if(!name || !phone || !pass) return alert("Please fill all details!");
-        if(phone.length < 10) return alert("Enter valid phone number!");
+    function handleRegister() {
+        const name = document.getElementById('regName').value.trim();
+        const phone = document.getElementById('regPhone').value.trim();
+        const pass = document.getElementById('regPass').value.trim();
+        const btn = document.getElementById('regBtn');
+
+        if(!name || !phone || !pass) return showMsg("Please fill all details!", true);
+        if(phone.length < 10) return showMsg("Enter valid 10-digit number!", true);
+
+        btn.disabled = true;
+        btn.innerText = "PROCESSING...";
 
         const userId = "JALWA-" + Math.floor(100000 + Math.random() * 900000);
 
         db.ref('users').orderByChild('phone').equalTo(phone).once('value', (snap) => {
             if(snap.exists()) {
-                alert("Phone number already registered!");
+                showMsg("Phone already registered!", true);
+                btn.disabled = false;
+                btn.innerText = "REGISTER NOW";
             } else {
                 db.ref('users/' + userId).set({
                     name: name,
@@ -87,13 +108,18 @@
                     balance: 0,
                     bonusClaimed: false,
                     userId: userId,
-                    referredBy: refBy, // Kisne refer kiya uska record
-                    totalRecharge: 0,  // Bonus check karne ke liye kaam aayega
+                    referredBy: refBy,
+                    totalRecharge: 0,
                     joinedAt: new Date().toISOString()
                 }).then(() => {
                     localStorage.setItem('jalwa_id', userId);
-                    alert("Registration Successful!");
-                    window.location.replace("index.html");
+                    showMsg("Registration Successful! Redirecting...");
+                    setTimeout(() => {
+                        window.location.replace("index.html");
+                    }, 2000);
+                }).catch(e => {
+                    showMsg("Database Error!", true);
+                    btn.disabled = false;
                 });
             }
         });
@@ -101,31 +127,4 @@
 </script>
 </body>
 </html>
-        if(!name || !phone || !pass) return alert("Please fill all details!");
-        if(phone.length < 10) return alert("Enter valid phone number!");
 
-        const userId = "JALWA-" + Math.floor(100000 + Math.random() * 900000);
-
-        // Check if phone already exists
-        db.ref('users').orderByChild('phone').equalTo(phone).once('value', (snap) => {
-            if(snap.exists()) {
-                alert("Phone number already registered!");
-            } else {
-                db.ref('users/' + userId).set({
-                    name: name,
-                    phone: phone,
-                    password: pass,
-                    balance: 0,
-                    bonusClaimed: false,
-                    userId: userId
-                }).then(() => {
-                    localStorage.setItem('jalwa_id', userId);
-                    alert("Registration Successful! ID: " + userId);
-                    window.location.href = "index.html";
-                });
-            }
-        });
-    }
-</script>
-</body>
-</html>
