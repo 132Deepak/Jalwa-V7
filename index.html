@@ -8,21 +8,25 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        :root { --bg: #0d131f; --card: #1f293a; --gold: #ff9800; --blue: #2196f3; --green: #00c853; }
+        :root { --bg: #0d131f; --card: #1f293a; --gold: #ff9800; --blue: #2196f3; --green: #00c853; --tg: #0088cc; }
         body { margin: 0; background: #000; font-family: 'Segoe UI', sans-serif; color: white; overflow-x: hidden; }
         .app-container { width: 100%; max-width: 480px; margin: auto; background: var(--bg); min-height: 100vh; padding-bottom: 80px; }
         .header { padding: 20px; display: flex; justify-content: space-between; align-items: center; background: var(--card); border-radius: 0 0 20px 20px; }
         .avatar { width: 40px; height: 40px; background: var(--gold); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #000; font-weight: bold; }
         .wallet-box { margin: 15px; padding: 25px; background: linear-gradient(135deg, #1e3a8a, #1e40af); border-radius: 24px; }
-        .bonus-card, .refer-card { margin: 10px 15px; background: var(--card); padding: 15px; border-radius: 15px; border: 1px solid #2d3a4f; }
+        .bonus-card, .refer-card, .tg-card { margin: 10px 15px; background: var(--card); padding: 15px; border-radius: 15px; border: 1px solid #2d3a4f; position: relative; overflow: hidden; }
+        
+        /* Telegram Card Style */
+        .tg-card { background: rgba(0, 136, 204, 0.1); border-color: var(--tg); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+        .tg-icon { color: var(--tg); font-size: 24px; }
+
         .game-launch-banner { margin: 10px 15px; background: linear-gradient(45deg, #1a1a1a, #2d3a4f); border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid #3d4b5f; cursor: pointer; }
         .page-view { display: none; }
         .page-view.active { display: block; }
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: #161e2b; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #2d3a4f; }
-        .nav-item { text-align: center; color: #64748b; font-size: 11px; flex: 1; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: #161e2b; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #2d3a4f; z-index: 1000; }
+        .nav-item { text-align: center; color: #64748b; font-size: 11px; flex: 1; cursor: pointer; }
         .nav-item.active { color: var(--gold); }
 
-        /* Sahi "Bet Success" Toast Style - No Localhost Header */
         #customToast { visibility: hidden; min-width: 250px; background-color: var(--green); color: #fff; text-align: center; border-radius: 10px; padding: 16px; position: fixed; z-index: 10001; left: 50%; top: 50%; transform: translate(-50%, -50%); font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.6); font-size: 16px; border: 1px solid rgba(255,255,255,0.2); }
         #customToast.show { visibility: visible; animation: fadeInOut 2s; }
         @keyframes fadeInOut { 0% {opacity: 0; transform: translate(-50%, -40%);} 20% {opacity: 1; transform: translate(-50%, -50%);} 80% {opacity: 1; transform: translate(-50%, -50%);} 100% {opacity: 0; transform: translate(-50%, -60%);} }
@@ -30,7 +34,7 @@
 </head>
 <body>
 
-<div id="customToast">Bet Success!</div>
+<div id="customToast">Action Success!</div>
 
 <div class="app-container">
     <div class="header">
@@ -41,6 +45,7 @@
                 <div id="uNameDisplay" style="font-weight: bold;">Welcome Back</div>
             </div>
         </div>
+        <div onclick="location.href='wallet.html'"><i class="fas fa-wallet" style="color:var(--gold); font-size:20px;"></i></div>
     </div>
 
     <div id="home" class="page-view active">
@@ -51,20 +56,33 @@
         </div>
         
         <div class="refer-card">
-            <div style="font-size: 14px; font-weight: bold; color: var(--gold);">REFER & EARN ₹250</div>
-            <button onclick="copyReferLink()" style="background:var(--gold); border:none; padding:8px 15px; border-radius:8px; margin-top:10px; font-weight:bold; cursor:pointer;">COPY LINK</button>
+            <div style="font-size: 14px; font-weight: bold; color: var(--gold); letter-spacing: 0.5px;">REFER & EARN ₹250</div>
+            <div style="font-size: 11px; color: #888; margin-top: 4px;">Share your link and get bonus.</div>
+            <button onclick="copyReferLink()" style="background:var(--gold); border:none; width: 100%; padding:10px; border-radius:8px; margin-top:12px; font-weight:bold; cursor:pointer; color:#000;">COPY REFER LINK</button>
+        </div>
+
+        <div class="tg-card" onclick="window.open('https://t.me/Realtrademods8911', '_blank')">
+            <div>
+                <div style="font-weight: bold; color: var(--tg); font-size: 14px;">JOIN OFFICIAL TELEGRAM</div>
+                <div style="font-size: 11px; color: #888; margin-top: 4px;">Get latest updates & predictions.</div>
+            </div>
+            <i class="fab fa-telegram tg-icon"></i>
         </div>
 
         <div class="game-launch-banner" onclick="location.href='game.html'">
             <div style="width:50px; height:50px; background:var(--gold); border-radius:10px; display:flex; align-items:center; justify-content:center; color:#000;"><i class="fas fa-gamepad"></i></div>
-            <div><h3>WinGo 30s</h3><p style="margin:0; font-size:12px; opacity:0.7;">Real Cash Game</p></div>
+            <div>
+                <h3 style="margin:0;">WinGo 30s</h3>
+                <p style="margin:0; font-size:12px; opacity:0.7;">Play & Win Real Cash</p>
+            </div>
+            <i class="fas fa-chevron-right" style="margin-left:auto; opacity:0.5;"></i>
         </div>
     </div>
 
     <div id="wallet" class="page-view">
         <div style="padding:20px; text-align:center;">
             <div class="wallet-box">
-                <div style="font-size: 14px;">Wallet Balance</div>
+                <div style="font-size: 14px;">Current Balance</div>
                 <div style="font-size: 30px; font-weight: bold;">₹ <span id="walletBal">0.00</span></div>
             </div>
             <button onclick="location.href='wallet.html'" style="width:100%; padding:15px; background:var(--blue); color:white; border:none; border-radius:15px; font-weight:bold; margin-top:20px;">OPEN WALLET</button>
@@ -86,7 +104,6 @@
 
     if(!userId) window.location.replace("login.html");
 
-    // NEW: Function to show "Bet Success" without Localhost popup
     function showToast(msg) {
         const t = document.getElementById("customToast");
         t.innerText = msg;
@@ -108,6 +125,7 @@
             if(data) {
                 document.getElementById('uID').innerText = userId;
                 document.getElementById('uNameDisplay').innerText = data.name || "User";
+                document.getElementById('avatarIcon').innerText = (data.name || "U").charAt(0).toUpperCase();
                 let val = Number(data.balance || 0);
                 document.getElementById('mainBal').innerText = val.toFixed(2);
                 document.getElementById('walletBal').innerText = val.toFixed(2);
@@ -116,15 +134,25 @@
     };
 
     function copyReferLink() {
-        const link = "https://132deepak.github.io/Jalwa/register.html?ref=" + userId;
-        navigator.clipboard.writeText(link).then(() => showToast("Link Copied Successfully!"));
+        const link = "https://132deepak.github.io/Jalwa-V7/register.html?ref=" + userId;
+        navigator.clipboard.writeText(link).then(() => {
+            showToast("Link Copied Successfully!");
+        }).catch(() => {
+            // Fallback for older browsers
+            const textArea = document.createElement("textarea");
+            textArea.value = link;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showToast("Link Copied!");
+        });
     }
 
     function logout() { localStorage.clear(); window.location.replace("login.html"); }
-    
-    // Example: Use showToast("Bet Success") instead of alert() in your betting logic
 </script>
 
 </body>
 </html>
+
 
