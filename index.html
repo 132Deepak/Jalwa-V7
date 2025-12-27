@@ -8,31 +8,54 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        :root { --bg: #0d131f; --card: #1f293a; --gold: #ff9800; --blue: #2196f3; --green: #00c853; --tg: #0088cc; }
+        :root { --bg: #0d131f; --card: #1f293a; --gold: #ff9800; --blue: #2196f3; --green: #00c853; --red: #ff4d4d; }
         body { margin: 0; background: #000; font-family: 'Segoe UI', sans-serif; color: white; overflow-x: hidden; }
-        .app-container { width: 100%; max-width: 480px; margin: auto; background: var(--bg); min-height: 100vh; padding-bottom: 80px; }
-        .header { padding: 20px; display: flex; justify-content: space-between; align-items: center; background: var(--card); border-radius: 0 0 20px 20px; }
-        .avatar { width: 40px; height: 40px; background: var(--gold); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #000; font-weight: bold; }
-        .wallet-box { margin: 15px; padding: 25px; background: linear-gradient(135deg, #1e3a8a, #1e40af); border-radius: 24px; }
-        .bonus-card, .refer-card, .tg-card { margin: 10px 15px; background: var(--card); padding: 15px; border-radius: 15px; border: 1px solid #2d3a4f; position: relative; overflow: hidden; }
-        
-        .tg-card { background: rgba(0, 136, 204, 0.1); border-color: var(--tg); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
-        .tg-icon { color: var(--tg); font-size: 24px; }
+        .app-container { width: 100%; max-width: 480px; margin: auto; background: var(--bg); min-height: 100vh; padding-bottom: 100px; }
 
-        .bonus-card { border-color: var(--blue); display: flex; justify-content: space-between; align-items: center; }
-        .btn-claim { background: var(--blue); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-claim:disabled { background: #444; color: #888; cursor: not-allowed; }
+        /* --- HEADER --- */
+        .user-top-bar { padding: 15px; background: var(--card); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d3a4f; }
+        .user-info-side { display: flex; align-items: center; gap: 10px; }
+        .id-val { font-weight: bold; color: var(--gold); font-size: 14px; }
+        .bal-side { display: flex; align-items: center; gap: 12px; }
+        .bal-amount { font-size: 18px; font-weight: 800; color: #fff; }
+        .refresh-btn { color: var(--gold); font-size: 18px; cursor: pointer; }
 
-        .game-launch-banner { margin: 10px 15px; background: linear-gradient(45deg, #1a1a1a, #2d3a4f); border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid #3d4b5f; cursor: pointer; }
+        /* --- ACTIONS --- */
+        .action-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 20px 15px; }
+        .action-btn { background: #252f3f; padding: 12px 5px; border-radius: 15px; text-align: center; border: 1px solid #2d3a4f; cursor: pointer; }
+        .action-btn i { font-size: 20px; margin-bottom: 5px; display: block; }
+        .action-btn.dep i { color: var(--green); }
+        .action-btn.wit i { color: var(--blue); }
+        .action-btn.sup i { color: var(--gold); }
+        .action-btn span { font-size: 11px; font-weight: 600; }
+
+        /* --- DAILY REWARD --- */
+        .daily-mission { margin: 0 15px 25px 15px; background: linear-gradient(90deg, #1e3a8a, #1e40af); padding: 15px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; }
+
+        /* --- GAMES GRID --- */
+        .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 15px; }
+        .game-box { background: #161e2b; border-radius: 20px; padding: 15px; text-align: center; border: 1px solid #2d3a4f; cursor: pointer; border-bottom: 4px solid transparent; }
+        .game-box.wingo { border-bottom-color: var(--gold); }
+        .game-box.aviator { border-bottom-color: var(--red); }
+        .game-box i { font-size: 30px; margin-bottom: 8px; display: block; }
+        .game-name { font-weight: bold; font-size: 14px; }
+
+        /* --- EARN PAGE STYLES --- */
+        .earn-container { padding: 20px 15px; }
+        .mission-card { background: var(--card); padding: 15px; border-radius: 18px; border-left: 4px solid var(--gold); display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .btn-claim-small { background: var(--blue); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
+        .btn-claim-small:disabled { background: #444 !important; color: #888 !important; }
+
+        /* NAV */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: #161e2b; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #2d3a4f; z-index: 1000; }
+        .nav-item { text-align: center; color: #64748b; font-size: 10px; flex: 1; cursor: pointer; }
+        .nav-item.active { color: var(--gold); }
         .page-view { display: none; }
         .page-view.active { display: block; }
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: #161e2b; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #2d3a4f; z-index: 1000; }
-        .nav-item { text-align: center; color: #64748b; font-size: 11px; flex: 1; cursor: pointer; }
-        .nav-item.active { color: var(--gold); }
 
-        #customToast { visibility: hidden; min-width: 250px; background-color: var(--green); color: #fff; text-align: center; border-radius: 10px; padding: 16px; position: fixed; z-index: 10001; left: 50%; top: 50%; transform: translate(-50%, -50%); font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.6); font-size: 16px; border: 1px solid rgba(255,255,255,0.2); }
+        #customToast { visibility: hidden; background: var(--green); color: #fff; padding: 12px; border-radius: 10px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000; font-weight: bold; }
         #customToast.show { visibility: visible; animation: fadeInOut 2s; }
-        @keyframes fadeInOut { 0% {opacity: 0; transform: translate(-50%, -40%);} 20% {opacity: 1; transform: translate(-50%, -50%);} 80% {opacity: 1; transform: translate(-50%, -50%);} 100% {opacity: 0; transform: translate(-50%, -60%);} }
+        @keyframes fadeInOut { 0%, 100% {opacity:0} 20%, 80% {opacity:1} }
     </style>
 </head>
 <body>
@@ -40,71 +63,81 @@
 <div id="customToast">Action Success!</div>
 
 <div class="app-container">
-    <div class="header">
-        <div style="display:flex; align-items:center; gap:10px;">
-            <div class="avatar" id="avatarIcon">J</div>
-            <div>
-                <div style="font-size: 10px; color: #888;">ID: <span id="uID">...</span></div>
-                <div id="uNameDisplay" style="font-weight: bold;">Welcome Back</div>
+    
+    <div id="home" class="page-view active">
+        <div class="user-top-bar">
+            <div class="user-info-side">
+                <div class="avatar" style="width:32px; height:32px; background:var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#000; font-weight:bold;">U</div>
+                <div><span style="font-size:9px; color:#888; display:block;">UID</span><span class="id-val" id="uID">...</span></div>
+            </div>
+            <div class="bal-side">
+                <div class="bal-amount">₹<span id="mainBal">0.00</span></div>
+                <i class="fas fa-sync-alt refresh-btn" onclick="location.reload()"></i>
             </div>
         </div>
-        <div onclick="location.href='wallet.html'"><i class="fas fa-wallet" style="color:var(--gold); font-size:20px;"></i></div>
+
+        <div class="action-row">
+            <div class="action-btn dep" onclick="showPage('wallet', document.querySelectorAll('.nav-item')[2])"><i class="fas fa-plus-circle"></i><span>Deposit</span></div>
+            <div class="action-btn wit" onclick="showPage('wallet', document.querySelectorAll('.nav-item')[2])"><i class="fas fa-money-bill-transfer"></i><span>Withdraw</span></div>
+            <div class="action-btn sup" onclick="window.open('https://t.me/yourlink')"><i class="fas fa-headset"></i><span>Support</span></div>
+        </div>
+
+        <div class="daily-mission">
+            <div><div style="font-weight:bold; font-size:14px;">Daily Login Bonus</div><div style="font-size:10px; color:#ddd;">Claim ₹20 free cash</div></div>
+            <button id="dailyBtn" onclick="claimDaily()" style="background:#fff; color:#1e40af; border:none; padding:8px 15px; border-radius:10px; font-weight:bold; font-size:11px;">CLAIM</button>
+        </div>
+
+        <div class="games-grid">
+            <div class="game-box wingo" onclick="location.href='game.html'"><i class="fas fa-dice" style="color:var(--gold)"></i><div class="game-name">WinGo 30s</div></div>
+            <div class="game-box aviator" onclick="location.href='aviator.html'"><i class="fas fa-plane-departure" style="color:var(--red)"></i><div class="game-name">Aviator</div></div>
+        </div>
     </div>
 
-    <div id="home" class="page-view active">
-        <div class="wallet-box">
-            <div style="font-size: 13px; opacity: 0.8;">Total Assets</div>
-            <div style="font-size: 32px; font-weight: bold; margin: 5px 0;">₹ <span id="mainBal">0.00</span></div>
-            <div style="font-size: 11px; color: #4ade80;"><i class="fas fa-shield-alt"></i> Secure Wallet</div>
-        </div>
-
-        <div class="bonus-card">
-            <div>
-                <div style="font-weight: bold; font-size: 14px;">Daily Gift</div>
-                <div style="font-size: 11px; color: #aaa;">Claim ₹20 every 24 hours</div>
+    <div id="earn" class="page-view">
+        <div class="earn-container">
+            <div style="background:var(--card); padding:20px; border-radius:20px; text-align:center; border:1px solid var(--gold); margin-bottom: 20px;">
+                <div style="font-size:15px; font-weight:bold;">Invite & Earn <span style="color:var(--gold);">₹250</span></div>
+                <div style="font-size:11px; color:#bbb; margin: 10px 0;">Reward added if friend <b style="color:var(--gold);">recharges ₹500+</b></div>
+                <button onclick="copyReferLink()" style="background:var(--gold); border:none; padding:12px; width:100%; border-radius:12px; font-weight:bold; color:#000;">COPY REFERRAL LINK</button>
             </div>
-            <button class="btn-claim" id="dailyBtn" onclick="claimDaily()">CLAIM</button>
-        </div>
-        
-        <div class="refer-card">
-            <div style="font-size: 14px; font-weight: bold; color: var(--gold); letter-spacing: 0.5px;">REFER & EARN ₹250</div>
-            <div style="font-size: 11px; color: #888; margin-top: 4px;">Get ₹250 when friend recharges ₹500+</div>
-            <button onclick="copyReferLink()" style="background:var(--gold); border:none; width: 100%; padding:10px; border-radius:8px; margin-top:12px; font-weight:bold; cursor:pointer; color:#000;">COPY REFER LINK</button>
-        </div>
 
-        <div class="tg-card" onclick="window.open('https://t.me/Realtrademods8911', '_blank')">
-            <div>
-                <div style="font-weight: bold; color: var(--tg); font-size: 14px;">JOIN OFFICIAL TELEGRAM</div>
-                <div style="font-size: 11px; color: #888; margin-top: 4px;">Predictions & Updates</div>
-            </div>
-            <i class="fab fa-telegram tg-icon"></i>
-        </div>
+            <div style="font-size: 14px; font-weight: bold; color: #888; margin-bottom: 12px;">LIFETIME MISSIONS</div>
 
-        <div class="game-launch-banner" onclick="location.href='game.html'">
-            <div style="width:50px; height:50px; background:var(--gold); border-radius:10px; display:flex; align-items:center; justify-content:center; color:#000;"><i class="fas fa-gamepad"></i></div>
-            <div>
-                <h3 style="margin:0;">WinGo 30s</h3>
-                <p style="margin:0; font-size:12px; opacity:0.7;">Play & Win Real Cash</p>
+            <div class="mission-card" style="border-left-color: var(--blue);">
+                <div>
+                    <div style="font-weight: bold; font-size: 14px;">Recharge ₹500</div>
+                    <div style="font-size: 11px; color: #888;">Claim ₹20 Bonus Cash</div>
+                </div>
+                <button class="btn-claim-small" id="taskRechargeBtn" onclick="claimTask('recharge')">CLAIM</button>
             </div>
-            <i class="fas fa-chevron-right" style="margin-left:auto; opacity:0.5;"></i>
+
+            <div class="mission-card" style="border-left-color: var(--green);">
+                <div>
+                    <div style="font-weight: bold; font-size: 14px;">Complete 100 Bets</div>
+                    <div style="font-size: 11px; color: #888;">Claim ₹20 Bonus Cash</div>
+                </div>
+                <button class="btn-claim-small" id="taskBetBtn" onclick="claimTask('bet')">CLAIM</button>
+            </div>
         </div>
     </div>
 
     <div id="wallet" class="page-view">
-        <div style="padding:20px; text-align:center;">
-            <div class="wallet-box">
-                <div style="font-size: 14px;">Current Balance</div>
-                <div style="font-size: 30px; font-weight: bold;">₹ <span id="walletBal">0.00</span></div>
+        <div style="padding:20px; text-align: center;">
+            <div style="background: linear-gradient(135deg, #1e3a8a, #1e40af); padding: 40px 20px; border-radius: 20px; margin-bottom: 20px;">
+                <div style="font-size: 14px; opacity: 0.8;">Wallet Balance</div>
+                <div style="font-size: 32px; font-weight: bold;">₹ <span id="walletBal">0.00</span></div>
             </div>
-            <button onclick="location.href='wallet.html'" style="width:100%; padding:15px; background:var(--blue); color:white; border:none; border-radius:15px; font-weight:bold; margin-top:20px;">OPEN WALLET</button>
+            <button onclick="location.href='wallet.html'" style="width:100%; padding:18px; background:var(--blue); color:white; border:none; border-radius:18px; font-weight:bold;">DEPOSIT / WITHDRAW</button>
         </div>
     </div>
 
     <div class="bottom-nav">
         <div class="nav-item active" onclick="showPage('home', this)"><i class="fas fa-house"></i><br>Home</div>
+        <div class="nav-item" onclick="showPage('earn', this)"><i class="fas fa-sack-dollar"></i><br>Earn</div>
         <div class="nav-item" onclick="showPage('wallet', this)"><i class="fas fa-wallet"></i><br>Wallet</div>
-        <div class="nav-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i><br>Logout</div>
+        <div class="nav-item" onclick="logout()"><i class="fas fa-power-off"></i><br>Logout</div>
     </div>
+
 </div>
 
 <script>
@@ -117,8 +150,7 @@
 
     function showToast(msg) {
         const t = document.getElementById("customToast");
-        t.innerText = msg;
-        t.className = "show";
+        t.innerText = msg; t.className = "show";
         setTimeout(() => { t.className = ""; }, 2000);
     }
 
@@ -130,32 +162,26 @@
     }
 
     window.onload = () => {
-        if(!userId) return;
-        
-        // Removed browser alert, replaced with Toast
-        if(localStorage.getItem('just_logged_in')){
-            showToast("Login Successful!");
-            localStorage.removeItem('just_logged_in');
-        }
-
         db.ref('users/' + userId).on('value', (snap) => {
             const data = snap.val();
             if(data) {
                 document.getElementById('uID').innerText = userId;
-                document.getElementById('uNameDisplay').innerText = data.name || "User";
-                document.getElementById('avatarIcon').innerText = (data.name || "U").charAt(0).toUpperCase();
-                let val = Number(data.balance || 0);
-                document.getElementById('mainBal').innerText = val.toFixed(2);
-                document.getElementById('walletBal').innerText = val.toFixed(2);
-
-                if(data.totalRecharge >= 500 && data.referredBy && data.referredBy !== "DIRECT" && !data.referRewardSent) {
-                    sendReferReward(data.referredBy);
-                }
-
+                let bal = Number(data.balance || 0).toFixed(2);
+                document.getElementById('mainBal').innerText = bal;
+                document.getElementById('walletBal').innerText = bal;
+                
                 const today = new Date().toDateString();
                 if(data.lastClaim === today) {
                     document.getElementById('dailyBtn').disabled = true;
                     document.getElementById('dailyBtn').innerText = "DONE";
+                }
+                if(data.task500Claimed) {
+                    document.getElementById('taskRechargeBtn').disabled = true;
+                    document.getElementById('taskRechargeBtn').innerText = "DONE";
+                }
+                if(data.task100BetClaimed) {
+                    document.getElementById('taskBetBtn').disabled = true;
+                    document.getElementById('taskBetBtn').innerText = "DONE";
                 }
             }
         });
@@ -165,41 +191,35 @@
         db.ref('users/' + userId).once('value', (snap) => {
             const data = snap.val();
             const today = new Date().toDateString();
-            if(data.lastClaim === today) {
-                showToast("Already claimed today!");
-            } else {
-                db.ref('users/' + userId).update({
-                    balance: (data.balance || 0) + 20,
-                    lastClaim: today
-                }).then(() => showToast("₹20 Daily Bonus Added!"));
+            if(data.lastClaim !== today) {
+                db.ref('users/' + userId).update({ balance: (data.balance || 0) + 20, lastClaim: today })
+                .then(() => showToast("₹20 Bonus Added!"));
             }
         });
     }
 
-    function sendReferReward(refID) {
-        db.ref('users/' + refID).once('value', (snap) => {
-            if(snap.exists()) {
-                const refData = snap.val();
-                db.ref('users/' + refID).update({
-                    balance: (refData.balance || 0) + 250
-                }).then(() => {
-                    db.ref('users/' + userId).update({ referRewardSent: true });
-                    console.log("Referral Reward of ₹250 Sent to " + refID);
-                });
+    function claimTask(type) {
+        db.ref('users/' + userId).once('value', (snap) => {
+            const data = snap.val();
+            if(type === 'recharge') {
+                if(!data.task500Claimed && data.totalRecharge >= 500) {
+                    db.ref('users/' + userId).update({ balance: (data.balance || 0) + 20, task500Claimed: true });
+                } else { showToast(data.task500Claimed ? "Already Claimed!" : "Recharge ₹500 first!"); }
+            } else if(type === 'bet') {
+                if(!data.task100BetClaimed && data.totalBets >= 100) {
+                    db.ref('users/' + userId).update({ balance: (data.balance || 0) + 20, task100BetClaimed: true });
+                } else { showToast(data.task100BetClaimed ? "Already Claimed!" : "Complete 100 bets!"); }
             }
         });
     }
 
     function copyReferLink() {
-        const link = "https://132deepak.github.io/Jalwa-V7/register.html?ref=" + userId;
-        navigator.clipboard.writeText(link).then(() => {
-            showToast("Link Copied Successfully!");
-        });
+        navigator.clipboard.writeText("https://rebrand.ly/b60a27").then(() => showToast("Link Copied!"));
     }
 
     function logout() { localStorage.clear(); window.location.replace("login.html"); }
 </script>
-
 </body>
 </html>
+
 
