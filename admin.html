@@ -17,9 +17,10 @@
         .stat-card { background: linear-gradient(45deg, #1e293b, #0f172a); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid var(--gold); margin: 10px; }
         .stat-card h2 { margin: 5px 0; font-size: 28px; color: var(--gold); }
         .bet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-        .bet-card { padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; cursor: pointer; border: 1px solid #333; font-size: 11px; }
+        .bet-card { padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; cursor: pointer; border: 2px solid transparent; font-size: 11px; transition: 0.3s; }
         .num-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
-        .num-box { background: #1f293a; padding: 10px; border-radius: 5px; text-align: center; cursor: pointer; border: 1px solid #333; font-size: 11px; }
+        .num-box { background: #1f293a; padding: 10px; border-radius: 5px; text-align: center; cursor: pointer; border: 2px solid transparent; font-size: 11px; }
+        .high-risk { border-color: var(--gold) !important; box-shadow: 0 0 10px var(--gold); transform: scale(1.05); }
         .req-item { background: #1f293a; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid var(--gold); font-size: 13px; }
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #2d3a4f; z-index: 1000; }
         .nav-item { text-align: center; color: #888; flex: 1; cursor: pointer; font-size: 11px; }
@@ -27,6 +28,7 @@
         .nav-item i { display: block; font-size: 20px; margin-bottom: 4px; }
         .btn { border: none; padding: 10px; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; }
         .btn-green { background: var(--green); } .btn-red { background: var(--red); } .btn-blue { background: var(--blue); color: #000; }
+        .input-box { width: 100%; background: #000; border: 1px solid #444; color: white; padding: 10px; border-radius: 5px; margin: 10px 0; box-sizing: border-box; text-align: center; font-weight: bold; }
         .user-row { padding: 12px; border-bottom: 1px solid #222; font-size: 12px; display: flex; flex-direction: column; gap: 4px; }
         .user-info { display: flex; justify-content: space-between; font-weight: bold; color: var(--blue); }
         .user-sub { display: flex; justify-content: space-between; color: #888; font-size: 10px; }
@@ -45,10 +47,11 @@
             <span>WINGO CONTROL</span>
             <span id="winModeDisp" style="color:var(--red)">PROFIT MODE</span>
         </h3>
+        <p id="wingoAlert" style="font-size:10px; color:var(--gold); text-align:center; margin-bottom:10px;"></p>
         <div class="bet-grid">
-            <div class="bet-card" style="background:var(--green)" onclick="forceWingo('Green')">GREEN<br>₹<span id="sumG">0</span></div>
-            <div class="bet-card" style="background:purple" onclick="forceWingo('Violet')">VIOLET<br>₹<span id="sumV">0</span></div>
-            <div class="bet-card" style="background:var(--red)" onclick="forceWingo('Red')">RED<br>₹<span id="sumR">0</span></div>
+            <div id="cardGreen" class="bet-card" style="background:var(--green)" onclick="forceWingo('Green')">GREEN<br>₹<span id="sumG">0</span></div>
+            <div id="cardViolet" class="bet-card" style="background:purple" onclick="forceWingo('Violet')">VIOLET<br>₹<span id="sumV">0</span></div>
+            <div id="cardRed" class="bet-card" style="background:var(--red)" onclick="forceWingo('Red')">RED<br>₹<span id="sumR">0</span></div>
         </div>
         <div class="num-grid" id="numBets"></div>
         <div style="display: flex; gap: 8px; margin-top: 10px;">
@@ -63,6 +66,11 @@
             <span>LOAD: <b id="aviTotalLoad" style="color:var(--blue)">₹0</b></span>
             <span>MODE: <b id="aviModeDisp">PROFIT</b></span>
         </div>
+        
+        <p style="font-size: 11px; color: #888;">Enter custom crash (Example: 1.55 or 10.0)</p>
+        <input type="number" id="customAviVal" class="input-box" placeholder="Ex: 2.50">
+        <button class="btn btn-red" style="background:#d11345; margin-bottom: 15px;" onclick="quickCrash(document.getElementById('customAviVal').value)">SET CUSTOM CRASH</button>
+
         <div class="quick-btns" style="display:grid; grid-template-columns:repeat(4,1fr); gap:5px;">
             <button class="btn btn-blue" style="font-size:10px" onclick="quickCrash(1.10)">1.1x</button>
             <button class="btn btn-blue" style="font-size:10px" onclick="quickCrash(2.00)">2.0x</button>
@@ -107,7 +115,6 @@
         el.classList.add('active');
     }
 
-    // --- Player Management ---
     function syncData() {
         const today = new Date().toISOString().split('T')[0];
         db.ref('users').on('value', snap => {
@@ -138,7 +145,6 @@
         }
     }
 
-    // --- Wingo & Aviator logic ---
     let curP = "";
     setInterval(() => {
         const n = new Date();
@@ -153,14 +159,37 @@
                 let b = c.val(); let amt = Number(b.amt||0);
                 if(typeof b.sel === 'number') ns[b.sel] += amt; else s[b.sel] += amt;
             });
+            
             document.getElementById('sumG').innerText = s.Green;
             document.getElementById('sumV').innerText = s.Violet;
             document.getElementById('sumR').innerText = s.Red;
-            let h = ""; for(let i=0; i<=9; i++) h+=`<div class="num-box" onclick="forceWingo(${i})">${i}<br>₹${ns[i]}</div>`;
+
+            // Highlight High Amount Color
+            let maxCol = Math.max(s.Green, s.Red, s.Violet);
+            document.getElementById('cardGreen').className = (s.Green === maxCol && maxCol > 0) ? "bet-card high-risk" : "bet-card";
+            document.getElementById('cardRed').className = (s.Red === maxCol && maxCol > 0) ? "bet-card high-risk" : "bet-card";
+            document.getElementById('cardViolet').className = (s.Violet === maxCol && maxCol > 0) ? "bet-card high-risk" : "bet-card";
+
+            // Find high amount number
+            let maxNumAmt = Math.max(...ns);
+            let maxNumIdx = ns.indexOf(maxNumAmt);
+
+            let h = ""; 
+            for(let i=0; i<=9; i++) {
+                let isHigh = (ns[i] === maxNumAmt && maxNumAmt > 0);
+                h+=`<div class="num-box ${isHigh ? 'high-risk' : ''}" onclick="forceWingo(${i})">${i}<br>₹${ns[i]}</div>`;
+            }
             document.getElementById('numBets').innerHTML = h;
+
+            if(maxCol > 0 || maxNumAmt > 0) {
+                document.getElementById('wingoAlert').innerText = "⚠️ High Pesa Alert on Gold Boxed Items!";
+            } else {
+                document.getElementById('wingoAlert').innerText = "";
+            }
         });
     }
-    function forceWingo(v) { db.ref('gameControl/nextResult').set(v); }
+
+    function forceWingo(v) { db.ref('gameControl/nextResult').set(v); alert("Next Result Set to: " + v); }
     function setWingoMode(m) { db.ref('gameControl/mode').set(m); }
     db.ref('gameControl/mode').on('value', snap => {
         const m = snap.val() || 'profit';
@@ -168,15 +197,17 @@
         document.getElementById('winModeDisp').style.color = m==='fair'?'var(--green)':'var(--red)';
     });
 
-    // --- Aviator ---
-    function quickCrash(v) { db.ref('aviator/control/nextCrash').set(v); }
-    function setAviMode(s) { db.ref('aviator/control/active').set(s); }
+    function quickCrash(v) { 
+        if(!v || v <= 0) return alert("Valid value daalo!");
+        db.ref('aviator/control/nextCrash').set(Number(v)); 
+        alert("Aviator next crash set to: " + v + "x");
+    }
+
     db.ref('aviator/live').on('value', snap => {
         let total = 0; snap.forEach(c => { total += Number(c.val().amt||0); });
         document.getElementById('aviTotalLoad').innerText = "₹" + total;
     });
 
-    // --- Payments ---
     db.ref('requests').on('value', snap => {
         let html = "";
         snap.child('deposits').forEach(c => {
@@ -210,6 +241,3 @@
 </script>
 </body>
 </html>
-
-
-
