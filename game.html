@@ -31,13 +31,22 @@
         .tab.active { color: var(--gold); border-bottom: 3px solid var(--gold); }
         table { width: 100%; border-collapse: collapse; text-align: center; }
         td, th { padding: 12px; border-bottom: 1px solid #2a3544; font-size: 13px; color: #ccc; }
+        
+        /* New History Tags */
+        .win-tag { color: var(--primary-green); font-weight: bold; }
+        .loss-tag { color: var(--primary-red); font-weight: bold; }
+
+        /* Premium Result Popup Style */
+        .result-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 5000; backdrop-filter: blur(8px); }
+        .result-card { background: #1f293a; width: 85%; max-width: 320px; border-radius: 25px; padding: 30px; text-align: center; border: 2px solid #444; }
+        .win-glow { border-color: var(--gold); box-shadow: 0 0 20px rgba(255,152,0,0.4); }
+        .loss-glow { border-color: var(--primary-red); box-shadow: 0 0 20px rgba(213,0,0,0.4); }
+
         .bet-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: #fff; border-radius: 20px 20px 0 0; transition: 0.3s; z-index: 2000; padding: 20px; color: #333; box-sizing: border-box; }
         .bet-sheet.active { bottom: 0; }
         .mul-box { display: flex; gap: 10px; margin: 15px 0; }
         .mul-btn { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px; text-align: center; cursor: pointer; font-weight: bold; }
         .mul-btn.active { background: var(--gold); color: white; border-color: var(--gold); }
-        .result-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 3000; }
-        .result-card { background: #1f293a; width: 85%; max-width: 320px; border-radius: 20px; padding: 25px; text-align: center; border: 2px solid var(--gold); }
     </style>
 </head>
 <body>
@@ -72,7 +81,7 @@
 </div>
 
 <div id="betSheet" class="bet-sheet">
-    <h3 id="sheetTitle" style="margin:0; font-size: 16px;">Confirm Selection</h3>
+    <h3 id="sheetTitle" style="margin:0; font-size: 16px;">Confirm Selection: <span id="selName"></span></h3>
     <div class="mul-box">
         <div class="mul-btn active" onclick="setMul(1, this)">X1</div>
         <div class="mul-btn" onclick="setMul(5, this)">X5</div>
@@ -87,14 +96,12 @@
 </div>
 
 <div id="resultOverlay" class="result-overlay">
-    <div class="result-card">
-        <div id="resEmoji" style="font-size: 50px;">🏆</div>
-        <div id="resTitle" class="res-title">WINNER</div>
-        <div class="res-detail">
-            <div id="resPeriod">...</div>
-            <div id="resProfit">₹0</div>
-        </div>
-        <button onclick="hideResult()" class="c-btn" style="width:100%; background:var(--gold)">Close</button>
+    <div id="resCard" class="result-card">
+        <div id="resEmoji" style="font-size: 60px;">🏆</div>
+        <div id="resTitle" style="font-size: 24px; font-weight: bold; margin: 10px 0;">WINNER</div>
+        <div style="color: #888; margin-bottom: 10px;" id="resPeriod">...</div>
+        <div id="resProfit" style="font-size: 30px; font-weight: 900;">₹0</div>
+        <button onclick="hideResult()" class="c-btn" style="width:100%; background:var(--gold); margin-top: 20px; border-radius: 50px;">CLOSE</button>
     </div>
 </div>
 
@@ -103,6 +110,8 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const userId = localStorage.getItem('jalwa_id') || "User" + Math.floor(Math.random()*9999);
+    localStorage.setItem('jalwa_id', userId);
+
     let currentPeriod = "", selection = "", balance = 0, multiplier = 1;
 
     function getBallClass(num) {
@@ -126,13 +135,24 @@
             balance = s.val() || 0; 
             document.getElementById('userBalance').innerText = balance.toFixed(2); 
         });
+
         database.ref('gameHistory').orderByKey().limitToLast(10).on('value', s => {
             let h = ""; s.forEach(c => {
                 let d = c.val();
-                h = `<tr><td>${d.pid}</td><td><div class="trend-ball ${getBallClass(d.num)}">${d.num}</div></td><td><div class="trend-ball ${getColorClass(d.col)}" style="width:12px; height:12px;"></div></td></tr>` + h;
+                h = `<tr><td>${d.pid.slice(-4)}</td><td><div class="trend-ball ${getBallClass(d.num)}">${d.num}</div></td><td><div class="trend-ball ${getColorClass(d.col)}" style="width:12px; height:12px;"></div></td></tr>` + h;
             });
             document.getElementById('chartBody').innerHTML = h;
         });
+
+        database.ref('users/' + userId + '/myHistory').limitToLast(10).on('value', s => {
+            let h = ""; let arr = []; s.forEach(c => arr.push(c.val()));
+            arr.reverse().forEach(d => {
+                let statusCls = d.status === 'Win' ? 'win-tag' : 'loss-tag';
+                h += `<tr><td>${d.pid.slice(-4)}</td><td>${d.sel}</td><td class="${statusCls}">${d.status}</td></tr>`;
+            });
+            document.getElementById('myHistoryBody').innerHTML = h;
+        });
+
         const grid = document.getElementById('numberGrid');
         for(let i=0; i<=9; i++){
             let d = document.createElement('div'); d.className = `ball ${getBallClass(i)}`;
@@ -145,7 +165,8 @@
         if(currentPeriod !== pId && currentPeriod !== "") processResult(currentPeriod);
         currentPeriod = pId; document.getElementById('periodId').innerText = pId;
         let rem = 30 - (new Date().getSeconds() % 30);
-        document.getElementById('t1').innerText = Math.floor(rem/10); document.getElementById('t2').innerText = rem%10;
+        document.getElementById('t1').innerText = Math.floor(rem/10); 
+        document.getElementById('t2').innerText = rem%10;
         if(rem <= 5) closeBet();
     }, 1000);
 
@@ -170,9 +191,11 @@
                 s.forEach(c => {
                     let b = c.val(); bet += b.amt;
                     let isWin = (b.sel == winNum || b.sel === winCol || (b.sel === 'Red' && winNum%2==0 && winNum!=0) || (b.sel === 'Green' && winNum%2!=0 && winNum!=5));
-                    if(isWin) win += b.amt * (typeof b.sel === 'number' ? 8.5 : 1.9);
+                    let profit = isWin ? b.amt * (typeof b.sel === 'number' ? 8.5 : 1.9) : 0;
+                    win += profit;
+                    database.ref('users/'+userId+'/myHistory').push({pid, sel:b.sel, status:isWin?'Win':'Loss'});
                 });
-                if(win > 0) database.ref('users/'+userId+'/balance').transaction(c => c + win);
+                if(win > 0) database.ref('users/'+userId+'/balance').transaction(c => (c||0) + win);
                 showResult(pid, win - bet);
                 database.ref('users/'+userId+'/currentBets/'+pid).remove();
             }
@@ -181,21 +204,39 @@
 
     function confirmBet() {
         let total = 10 * multiplier;
-        if(balance < total) return;
+        if(balance < total) { alert("Low Balance"); return; }
         database.ref('users/'+userId+'/currentBets/'+currentPeriod).push({sel:selection, amt:total});
-        database.ref('bets/'+currentPeriod).push({sel:selection, amt:total});
+        database.ref('bets/'+currentPeriod).push({uid:userId, sel:selection, amt:total});
         database.ref('users/'+userId+'/balance').transaction(c => c - total);
         closeBet();
     }
 
-    function openBet(s) { selection = s; document.getElementById('betSheet').classList.add('active'); }
+    function openBet(s) { selection = s; document.getElementById('selName').innerText = s; document.getElementById('betSheet').classList.add('active'); }
     function closeBet() { document.getElementById('betSheet').classList.remove('active'); }
-    function setMul(m, btn) { multiplier = m; document.getElementById('displayTotal').innerText = 10*m; }
+    function setMul(m, btn) { 
+        multiplier = m; 
+        document.getElementById('displayTotal').innerText = 10*m; 
+        document.querySelectorAll('.mul-btn').forEach(x => x.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
     function showResult(p, pr) {
-        document.getElementById('resPeriod').innerText = p;
-        document.getElementById('resProfit').innerText = (pr > 0 ? "+" : "") + pr;
+        const card = document.getElementById('resCard');
+        const tit = document.getElementById('resTitle');
+        const em = document.getElementById('resEmoji');
+        const pft = document.getElementById('resProfit');
+        
+        document.getElementById('resPeriod').innerText = "Period: " + p;
+        if(pr >= 0) {
+            card.className = "result-card win-glow"; tit.innerText = "WINNER"; tit.style.color = "var(--primary-green)";
+            em.innerText = "🏆"; pft.innerText = "+₹" + pr.toFixed(2); pft.style.color = "var(--primary-green)";
+        } else {
+            card.className = "result-card loss-glow"; tit.innerText = "BET LOSS"; tit.style.color = "var(--primary-red)";
+            em.innerText = "❌"; pft.innerText = "-₹" + Math.abs(pr).toFixed(2); pft.style.color = "var(--primary-red)";
+        }
         document.getElementById('resultOverlay').style.display = 'flex';
     }
+
     function hideResult() { document.getElementById('resultOverlay').style.display = 'none'; }
     function switchTab(t, b) {
         document.querySelectorAll('.tab').forEach(x => x.classList.remove('active')); b.classList.add('active');
@@ -204,5 +245,4 @@
     }
 </script>
 </body>
-    </html>
-    
+</html>
