@@ -3,79 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Jalwa WinGo Pro - Persistent History</title>
-    
+    <title>Jalwa WinGo - Multi Bet Style</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
     <style>
         :root { --bg-color: #0d131f; --card-bg: #1f293a; --primary-green: #00c853; --primary-red: #d50000; --primary-violet: #aa00ff; --gold: #ff9800; }
-        body { margin: 0; padding: 0; background: #000; font-family: 'Segoe UI', sans-serif; color: white; overflow-y: auto; }
-        .app-container { width: 100%; max-width: 480px; background: var(--bg-color); min-height: 100vh; margin: auto; position: relative; }
-        .top-nav { padding: 15px; background: var(--card-bg); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid #2a3544; }
-        .wallet-card { background: linear-gradient(135deg, #2196f3, #0046a1); margin: 10px; padding: 20px; border-radius: 15px; }
-        .timer-row { background: var(--card-bg); margin: 10px; border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .digit { background: #334155; color: var(--gold); padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 24px; margin-left: 2px; }
+        body { margin: 0; background: #000; font-family: 'Segoe UI', sans-serif; color: white; -webkit-tap-highlight-color: transparent; }
+        .app-container { width: 100%; max-width: 480px; background: var(--bg-color); min-height: 100vh; margin: auto; }
+        .top-nav { padding: 15px; background: var(--card-bg); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2a3544; }
+        .balance-display { color: var(--gold); font-weight: bold; font-size: 18px; }
+        .status-header-card { background: #161e2b; margin: 10px; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; border: 1px solid #3d4b5f; }
+        .digit { background: #000; color: #fff; padding: 5px 8px; border-radius: 4px; font-weight: bold; font-size: 20px; }
         .game-area { padding: 15px; background: var(--card-bg); margin: 10px; border-radius: 15px; }
         .btn-group { display: flex; justify-content: space-between; margin-bottom: 15px; }
         .c-btn { width: 31%; padding: 12px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
         .num-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-        
-        /* Ball Styling */
         .ball { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; border: 2px solid rgba(255,255,255,0.1); color: white; }
-        .ball-0 { background: linear-gradient(135deg, var(--primary-red) 50%, var(--primary-violet) 50%); }
-        .ball-5 { background: linear-gradient(135deg, var(--primary-green) 50%, var(--primary-violet) 50%); }
         .ball-red { background: var(--primary-red); }
         .ball-green { background: var(--primary-green); }
-        
-        /* Trend Chart Ball (Smaller) */
-        .trend-ball { width: 25px; height: 25px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; margin: 0 auto; color: white; }
-
-        .tabs { display: flex; background: var(--card-bg); margin-top: 10px; position: sticky; top: 58px; z-index: 999; }
-        .tab { flex: 1; text-align: center; padding: 15px; cursor: pointer; color: #888; font-weight: bold; }
+        .ball-violet { background: var(--primary-violet); }
+        .ball-0 { background: linear-gradient(135deg, var(--primary-red) 50%, var(--primary-violet) 50%); }
+        .ball-5 { background: linear-gradient(135deg, var(--primary-green) 50%, var(--primary-violet) 50%); }
+        .trend-ball { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: white; }
+        .tabs { display: flex; background: var(--card-bg); margin-top: 10px; }
+        .tab { flex: 1; text-align: center; padding: 15px; cursor: pointer; color: #888; }
         .tab.active { color: var(--gold); border-bottom: 3px solid var(--gold); }
-        .scroll-area { background: #161e2b; padding-bottom: 50px; }
         table { width: 100%; border-collapse: collapse; text-align: center; }
-        th { background: #1f293a; padding: 12px; color: #888; font-size: 11px; text-transform: uppercase; }
-        td { padding: 12px; border-bottom: 1px solid #2a3544; font-size: 13px; }
-
+        td, th { padding: 12px; border-bottom: 1px solid #2a3544; font-size: 13px; color: #ccc; }
         .bet-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: #fff; border-radius: 20px 20px 0 0; transition: 0.3s; z-index: 2000; padding: 20px; color: #333; box-sizing: border-box; }
         .bet-sheet.active { bottom: 0; }
-        .res-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: #fff; width: 80%; border-radius: 20px; z-index: 3000; transition: 0.3s; padding: 25px; text-align: center; color: #333; }
-        .res-popup.active { transform: translate(-50%, -50%) scale(1); }
+        .mul-box { display: flex; gap: 10px; margin: 15px 0; }
+        .mul-btn { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px; text-align: center; cursor: pointer; font-weight: bold; }
+        .mul-btn.active { background: var(--gold); color: white; border-color: var(--gold); }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     <div class="top-nav">
-        <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
         <span style="font-weight: bold;">WIN GO 30S</span>
-        <div onclick="window.location.href='wallet.html'"><i class="fas fa-wallet"></i></div>
+        <div class="balance-display">₹<span id="userBalance">0.00</span></div>
     </div>
 
-    <div class="wallet-card">
-        <div style="font-size: 13px; opacity: 0.8;">Available Balance</div>
-        <div style="font-size: 30px; font-weight: bold; margin-top: 5px;">₹ <span id="userBalance">0.00</span></div>
-    </div>
-
-    <div class="timer-row">
-        <div>
-            <div style="color: #888; font-size: 11px;">Period</div>
-            <div id="periodId" style="font-weight: bold; font-size: 15px; color: #eee;">Loading...</div>
-        </div>
-        <div style="text-align: right;">
-            <div style="color: #888; font-size: 11px; margin-bottom: 4px;">Time Left</div>
-            <div style="display: flex;"><div class="digit" id="t1">0</div><div class="digit" id="t2">0</div></div>
-        </div>
+    <div class="status-header-card">
+        <div><div style="color:#888; font-size:11px;">Period</div><div id="periodId" style="font-weight:bold; color:var(--gold);">Loading...</div></div>
+        <div style="display:flex; align-items:center;"><div id="t1" class="digit">0</div><div id="t2" class="digit">0</div></div>
     </div>
 
     <div class="game-area">
         <div class="btn-group">
-            <button class="c-btn" style="background:var(--primary-green)" onclick="openBet('Green', '#00c853')">Green</button>
-            <button class="c-btn" style="background:var(--primary-violet)" onclick="openBet('Violet', '#aa00ff')">Violet</button>
-            <button class="c-btn" style="background:var(--primary-red)" onclick="openBet('Red', '#d50000')">Red</button>
+            <button class="c-btn" style="background:var(--primary-green)" onclick="openBet('Green', 'var(--primary-green)')">Green</button>
+            <button class="c-btn" style="background:var(--primary-violet)" onclick="openBet('Violet', 'var(--primary-violet)')">Violet</button>
+            <button class="c-btn" style="background:var(--primary-red)" onclick="openBet('Red', 'var(--primary-red)')">Red</button>
         </div>
         <div class="num-grid" id="numberGrid"></div>
     </div>
@@ -85,91 +65,155 @@
         <div class="tab" onclick="switchTab('mybet', this)">My History</div>
     </div>
 
-    <div class="scroll-area">
-        <div id="chartContainer">
-            <table>
-                <thead><tr><th>Period</th><th>Number</th><th>Color</th></tr></thead>
-                <tbody id="chartBody"></tbody>
-            </table>
-        </div>
-        <div id="myBetContainer" style="display:none;">
-            <table>
-                <thead><tr><th>Period</th><th>Selection</th><th>Amount</th><th>Status</th></tr></thead>
-                <tbody id="myHistoryBody"></tbody>
-            </table>
-        </div>
-    </div>
+    <div id="chartContainer"><table><thead><tr><th>Period</th><th>Result</th><th>Color</th></tr></thead><tbody id="chartBody"></tbody></table></div>
+    <div id="myBetContainer" style="display:none;"><table><thead><tr><th>Period</th><th>Bet</th><th>Status</th></tr></thead><tbody id="myHistoryBody"></tbody></table></div>
 </div>
 
 <div id="betSheet" class="bet-sheet">
-    <h3 id="sheetTitle" style="margin-top:0">Select</h3>
-    <div style="display:flex; gap:10px; margin:20px 0;">
-        <div class="c-btn" style="background:#f4f4f4; color:#333; text-align:center;" onclick="setAmt(10)">10</div>
-        <div class="c-btn" style="background:#f4f4f4; color:#333; text-align:center;" onclick="setAmt(100)">100</div>
-        <div class="c-btn" style="background:#f4f4f4; color:#333; text-align:center;" onclick="setAmt(1000)">1000</div>
+    <h3 id="sheetTitle" style="margin:0; font-size: 16px;">Confirm Selection</h3>
+    <div style="margin-top: 15px; font-size: 14px; color: #666;">Select Multiplier:</div>
+    <div class="mul-box">
+        <div class="mul-btn active" onclick="setMul(1, this)">X1</div>
+        <div class="mul-btn" onclick="setMul(5, this)">X5</div>
+        <div class="mul-btn" onclick="setMul(10, this)">X10</div>
+        <div class="mul-btn" onclick="setMul(50, this)">X50</div>
     </div>
-    <div style="font-weight:bold; font-size: 18px;">Total: <span style="color:var(--gold)">₹<span id="totalBetTxt">10</span></span></div>
-    <button onclick="confirmBet()" id="confBtn" style="width:100%; padding:15px; border:none; border-radius:10px; color:white; font-weight:bold; font-size:18px; margin-top:20px;">Confirm</button>
-</div>
-
-<div id="resPopup" class="res-popup">
-    <h2 id="resStat" style="margin:0;">Result</h2>
-    <div style="font-size: 20px; margin: 15px 0;">Amount: <span id="resAmt" style="font-weight:bold;">₹0.00</span></div>
-    <button onclick="this.parentElement.classList.remove('active')" style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:10px;">OK</button>
+    <div style="margin: 20px 0; font-size: 18px; font-weight: bold;">Total Bet: <span style="color:var(--gold)">₹<span id="displayTotal">10</span></span></div>
+    <div style="display: flex; gap: 10px;">
+        <button onclick="closeBet()" class="c-btn" style="background:#eee; color:#333; flex:1">Cancel</button>
+        <button onclick="confirmBet()" id="confBtn" class="c-btn" style="background:var(--bg-color); flex:2">Confirm Bet</button>
+    </div>
 </div>
 
 <script>
     const firebaseConfig = { databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-
     const userId = localStorage.getItem('jalwa_id');
-    let balance = 0, currentPeriod = "", currentBetAmt = 10, selection = "";
+    let currentPeriod = "", selection = "", balance = 0, multiplier = 1;
+
+    function getBallClass(num) {
+        if(num == 0) return 'ball-0';
+        if(num == 5) return 'ball-5';
+        return (num % 2 == 0) ? 'ball-red' : 'ball-green';
+    }
+
+    function getColorClass(col) {
+        if(col === 'Red') return 'ball-red';
+        if(col === 'Green') return 'ball-green';
+        if(col === 'Violet') return 'ball-violet';
+        return '';
+    }
+
+    function getPeriodId() {
+        const now = new Date();
+        const seconds = (now.getHours() * 3600) + (now.getMinutes() * 60) + now.getSeconds();
+        return now.getFullYear().toString() + (now.getMonth()+1).toString().padStart(2,'0') + now.getDate().toString().padStart(2,'0') + Math.floor(seconds/30).toString().padStart(4,'0');
+    }
 
     window.onload = () => {
-        if(!userId) return window.location.href = "index.html";
+        if(!userId) return alert("User ID not found!");
 
-        // 1. Sync Balance
-        database.ref('users/' + userId + '/balance').on('value', snap => {
-            balance = Number(snap.val() || 0);
-            document.getElementById('userBalance').innerText = balance.toFixed(2);
+        database.ref('users/' + userId + '/balance').on('value', s => { 
+            balance = s.val() || 0; 
+            document.getElementById('userBalance').innerText = balance.toFixed(2); 
         });
 
-        // 2. Load and Sync Trend Chart (Permanent)
-        database.ref('gameHistory').limitToLast(20).on('value', snap => {
-            let h = "";
-            snap.forEach(child => {
-                let data = child.val();
-                let bClass = "";
-                if(data.num == 0) bClass = "ball-0";
-                else if(data.num == 5) bClass = "ball-5";
-                else bClass = (data.num % 2 === 0) ? "ball-red" : "ball-green";
-
-                let cClass = (data.col === "Red") ? "ball-red" : (data.col === "Green" ? "ball-green" : "ball-0");
-
-                h = `<tr>
-                    <td>${data.pid.slice(-4)}</td>
-                    <td><div class="trend-ball ${bClass}">${data.num}</div></td>
-                    <td><div class="trend-ball ${cClass}" style="width:15px; height:15px;"></div></td>
-                </tr>` + h;
+        database.ref('gameHistory').orderByKey().limitToLast(15).on('value', s => {
+            let h = ""; let dataArr = [];
+            s.forEach(c => { dataArr.push(c.val()); });
+            dataArr.reverse().forEach(d => {
+                h += `<tr><td>${d.pid}</td><td><div class="trend-ball ${getBallClass(d.num)}">${d.num}</div></td><td><div class="trend-ball ${getColorClass(d.col)}" style="width:12px; height:12px;"></div></td></tr>`;
             });
             document.getElementById('chartBody').innerHTML = h;
         });
 
-        // 3. Load and Sync My History (Permanent)
-        database.ref('users/' + userId + '/myHistory').limitToLast(20).on('value', snap => {
-            let h = "";
-            snap.forEach(child => {
-                let data = child.val();
-                let statusColor = data.status === "Win" ? "var(--primary-green)" : "var(--primary-red)";
-                h = `<tr>
-                    <td>${data.pid.slice(-4)}</td>
-                    <td>${data.sel}</td>
-                    <td>₹${data.amt}</td>
-                    <td style="color:${statusColor}; font-weight:bold;">${data.status}</td>
-                </tr>` + h;
+        database.ref('users/' + userId + '/myHistory').limitToLast(15).on('value', s => {
+            let h = ""; let myData = [];
+            s.forEach(c => { myData.push(c.val()); });
+            myData.reverse().forEach(d => {
+                let displayBet = (typeof d.sel === 'number') ? `<div class="trend-ball ${getBallClass(d.sel)}">${d.sel}</div>` : `<div class="trend-ball ${getColorClass(d.sel)}" style="width:40px; border-radius:4px; font-size:9px;">${d.sel}</div>`;
+                let sCol = d.status === 'Win' ? 'var(--primary-green)' : 'var(--primary-red)';
+                h += `<tr><td>${d.pid}</td><td>${displayBet} (₹${d.amt})</td><td style="color:${sCol}; font-weight:bold;">${d.status}</td></tr>`;
             });
             document.getElementById('myHistoryBody').innerHTML = h;
+        });
+        
+        const grid = document.getElementById('numberGrid');
+        for(let i=0; i<=9; i++){
+            let d = document.createElement('div'); d.className = `ball ${getBallClass(i)}`;
+            d.innerText = i; d.onclick = () => openBet(i, getBallClass(i)); grid.appendChild(d);
+        }
+    };
+
+    setInterval(() => {
+        let pId = getPeriodId();
+        if(currentPeriod !== pId && currentPeriod !== "") processResult(currentPeriod);
+        currentPeriod = pId; document.getElementById('periodId').innerText = pId;
+        let rem = 30 - (new Date().getSeconds() % 30);
+        document.getElementById('t1').innerText = Math.floor(rem/10); document.getElementById('t2').innerText = rem%10;
+        if(rem <= 5) closeBet();
+    }, 1000);
+
+    async function processResult(pid) {
+        const snap = await database.ref('gameControl').once('value');
+        const ctrl = snap.val() || {};
+        let winNum;
+        if (ctrl.nextResult !== undefined && ctrl.nextResult !== null && ctrl.nextResult !== "") {
+            winNum = ctrl.nextResult;
+            if(winNum === 'Green') winNum = 3; else if(winNum === 'Red') winNum = 2; else if(winNum === 'Violet') winNum = 0;
+            database.ref('gameControl/nextResult').set(null);
+        } else { winNum = Math.floor(Math.random()*10); }
+        
+        let winCol = (winNum%2==0)?'Red':'Green'; if(winNum==0||winNum==5) winCol='Violet';
+        await database.ref('gameHistory/'+pid).set({pid, num:winNum, col:winCol});
+
+        database.ref('users/'+userId+'/currentBets/'+pid).once('value', s => {
+            s.forEach(c => {
+                let b = c.val(); let isWin = (b.sel == winNum || b.sel === winCol || (b.sel === 'Red' && winNum%2==0 && winNum!=0) || (b.sel === 'Green' && winNum%2!=0 && winNum!=5));
+                let winAmt = isWin ? b.amt * (typeof b.sel === 'number' ? 8.5 : 1.9) : 0;
+                if(isWin) database.ref('users/'+userId+'/balance').transaction(c => c + winAmt);
+                database.ref('users/'+userId+'/myHistory').push({pid, sel:b.sel, status:isWin?'Win':'Loss', amt:b.amt});
+            });
+            database.ref('users/'+userId+'/currentBets/'+pid).remove();
+        });
+    }
+
+    function openBet(s, color) { 
+        selection = s; multiplier = 1;
+        document.getElementById('sheetTitle').innerText = "Bet on: " + s;
+        document.getElementById('displayTotal').innerText = 10;
+        document.querySelectorAll('.mul-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.mul-btn')[0].classList.add('active');
+        document.getElementById('betSheet').classList.add('active'); 
+    }
+
+    function setMul(m, btn) {
+        multiplier = m;
+        document.getElementById('displayTotal').innerText = 10 * m;
+        document.querySelectorAll('.mul-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    function confirmBet() {
+        let totalBet = 10 * multiplier;
+        if(balance < totalBet) return alert("Low Balance!");
+        database.ref('users/'+userId+'/currentBets/'+currentPeriod).push({sel:selection, amt:totalBet});
+        database.ref('users/'+userId+'/balance').transaction(c => c - totalBet);
+        closeBet();
+    }
+
+    function closeBet() { document.getElementById('betSheet').classList.remove('active'); }
+
+    function switchTab(t, b) {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active')); b.classList.add('active');
+        document.getElementById('chartContainer').style.display = t=='chart'?'block':'none';
+        document.getElementById('myBetContainer').style.display = t=='mybet'?'block':'none';
+    }
+</script>
+</body>
+</html>
+ = h;
         });
 
         // Build Numbers
