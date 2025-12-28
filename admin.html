@@ -2,105 +2,97 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Admin: Wingo + Aviator ULTIMATE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Master Admin - Jalwa Ultimate</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --bg: #0b0f19; --card: #161d2b; --gold: #ff9800; --green: #00c853; --red: #ff5252; --blue: #00e5ff; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding: 10px; overflow-x: hidden; }
-        .section { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #2d3a4f; margin-bottom: 15px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 80px; overflow-x: hidden; }
+        .section { display: none; padding: 10px; }
+        .section.active { display: block; }
+        .card { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #2d3a4f; margin-bottom: 15px; }
         h3 { color: var(--gold); margin-top: 0; font-size: 14px; border-bottom: 1px solid #333; padding-bottom: 8px; text-transform: uppercase; }
-        
-        /* Stats Header */
-        .stat-card { background: linear-gradient(45deg, #1e293b, #0f172a); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid var(--gold); margin-bottom: 15px; }
+        .stat-card { background: linear-gradient(45deg, #1e293b, #0f172a); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid var(--gold); margin: 10px; }
         .stat-card h2 { margin: 5px 0; font-size: 28px; color: var(--gold); }
-        .stat-card p { margin: 0; font-size: 11px; color: #888; text-transform: uppercase; }
-
         .bet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-        .bet-card { padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; cursor: pointer; border: 1px solid #333; font-size: 12px; }
+        .bet-card { padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; cursor: pointer; border: 1px solid #333; font-size: 11px; }
         .num-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
-        .num-box { background: #1f293a; padding: 10px; border-radius: 5px; text-align: center; cursor: pointer; border: 1px solid #333; font-size: 13px; }
-        .aviator-box { border: 2px solid #d11345; }
-        .avi-stats { display: flex; justify-content: space-between; margin-bottom: 10px; background: #000; padding: 10px; border-radius: 8px; }
-        .stat-item { text-align: center; flex: 1; }
-        .stat-item span { display: block; font-size: 10px; color: #888; }
-        .stat-item b { font-size: 14px; color: var(--blue); }
-        .live-bets-list { background: #000; padding: 10px; border-radius: 8px; max-height: 100px; overflow-y: auto; font-size: 12px; margin-bottom: 10px; }
-        .bet-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #222; }
-        
-        .quick-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 10px; }
-        .q-btn { background: #333; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; }
-        .q-btn.active { background: var(--blue); color: #000; }
-
-        .control-input { display: flex; gap: 10px; margin: 10px 0; }
-        .control-input input { flex: 1; padding: 12px; border-radius: 5px; border: 1px solid #444; background: #000; color: #fff; font-weight: bold; }
-        
-        .req-list { max-height: 200px; overflow-y: auto; }
+        .num-box { background: #1f293a; padding: 10px; border-radius: 5px; text-align: center; cursor: pointer; border: 1px solid #333; font-size: 11px; }
         .req-item { background: #1f293a; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid var(--gold); font-size: 13px; }
-        .btn { border: none; padding: 10px; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; }
-        .btn-green { background: var(--green); }
-        .btn-red { background: var(--red); }
-        .btn-blue { background: var(--blue); color: #000; }
-        .status-toggle { width: 100%; margin-top: 5px; font-size: 12px; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #2d3a4f; z-index: 1000; }
+        .nav-item { text-align: center; color: #888; flex: 1; cursor: pointer; font-size: 11px; }
+        .nav-item.active { color: var(--gold); }
+        .nav-item i { display: block; font-size: 20px; margin-bottom: 4px; }
+        .btn { border: none; padding: 10px; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; }
+        .btn-green { background: var(--green); } .btn-red { background: var(--red); } .btn-blue { background: var(--blue); color: #000; }
+        .user-row { padding: 12px; border-bottom: 1px solid #222; font-size: 12px; display: flex; flex-direction: column; gap: 4px; }
+        .user-info { display: flex; justify-content: space-between; font-weight: bold; color: var(--blue); }
+        .user-sub { display: flex; justify-content: space-between; color: #888; font-size: 10px; }
     </style>
 </head>
 <body>
 
 <div class="stat-card">
-    <p><i class="fas fa-id-card"></i> New User IDs Today</p>
+    <p><i class="fas fa-users"></i> Users Registered Today</p>
     <h2 id="todayUsersCount">0</h2>
 </div>
 
-<div class="section">
-    <h3 style="display:flex; justify-content:space-between;">
-        <span>WINGO 30S CONTROL</span>
-        <span id="winModeDisp" style="color:var(--red)">PROFIT MODE</span>
-    </h3>
-    <div class="bet-grid">
-        <div class="bet-card" style="background:var(--green)" onclick="forceWingo('Green')">GREEN<br>₹<span id="sumG">0</span></div>
-        <div class="bet-card" style="background:purple" onclick="forceWingo('Violet')">VIOLET<br>₹<span id="sumV">0</span></div>
-        <div class="bet-card" style="background:var(--red)" onclick="forceWingo('Red')">RED<br>₹<span id="sumR">0</span></div>
+<div id="gamesSec" class="section active">
+    <div class="card">
+        <h3 style="display:flex; justify-content:space-between;">
+            <span>WINGO CONTROL</span>
+            <span id="winModeDisp" style="color:var(--red)">PROFIT MODE</span>
+        </h3>
+        <div class="bet-grid">
+            <div class="bet-card" style="background:var(--green)" onclick="forceWingo('Green')">GREEN<br>₹<span id="sumG">0</span></div>
+            <div class="bet-card" style="background:purple" onclick="forceWingo('Violet')">VIOLET<br>₹<span id="sumV">0</span></div>
+            <div class="bet-card" style="background:var(--red)" onclick="forceWingo('Red')">RED<br>₹<span id="sumR">0</span></div>
+        </div>
+        <div class="num-grid" id="numBets"></div>
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <button class="btn btn-green" onclick="setWingoMode('fair')">FAIR MODE</button>
+            <button class="btn btn-red" onclick="setWingoMode('profit')">PROFIT MODE</button>
+        </div>
     </div>
-    <div class="num-grid" id="numBets"></div>
-    <div style="display: flex; gap: 8px; margin-top: 10px;">
-        <button class="btn btn-green status-toggle" onclick="setWingoMode('fair')">FAIR MODE</button>
-        <button class="btn btn-red status-toggle" onclick="setWingoMode('profit')">PROFIT MODE</button>
+
+    <div class="card" style="border: 2px solid #d11345;">
+        <h3>AVIATOR CONTROL</h3>
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:10px; background:#000; padding:8px; border-radius:5px;">
+            <span>LOAD: <b id="aviTotalLoad" style="color:var(--blue)">₹0</b></span>
+            <span>MODE: <b id="aviModeDisp">PROFIT</b></span>
+        </div>
+        <div class="quick-btns" style="display:grid; grid-template-columns:repeat(4,1fr); gap:5px;">
+            <button class="btn btn-blue" style="font-size:10px" onclick="quickCrash(1.10)">1.1x</button>
+            <button class="btn btn-blue" style="font-size:10px" onclick="quickCrash(2.00)">2.0x</button>
+            <button class="btn btn-blue" style="font-size:10px" onclick="quickCrash(5.00)">5.0x</button>
+            <button class="btn btn-blue" style="font-size:10px" onclick="quickCrash(10.0)">10x</button>
+        </div>
     </div>
 </div>
 
-<div class="section aviator-box">
-    <h3>AVIATOR CRASH MASTER</h3>
-    <div class="avi-stats">
-        <div class="stat-item"><span>LOAD</span><b id="aviTotalLoad">₹0</b></div>
-        <div class="stat-item"><span>MODE</span><b id="aviModeDisp">PROFIT</b></div>
-    </div>
-    <div class="live-bets-list" id="aviPlayerList"></div>
-    <div class="quick-btns">
-        <button class="q-btn" id="m1" onclick="quickCrash(1.10, 'm1')">1.1x</button>
-        <button class="q-btn" id="m2" onclick="quickCrash(2.00, 'm2')">2.0x</button>
-        <button class="q-btn" id="m5" onclick="quickCrash(5.00, 'm5')">5.0x</button>
-        <button class="q-btn" id="m10" onclick="quickCrash(10.0, 'm10')">10x</button>
-    </div>
-    <div class="control-input">
-        <input type="number" id="nextCrash" step="0.01" placeholder="Fix Next">
-        <button class="btn btn-blue" onclick="setManualCrash()">FIX</button>
-    </div>
-    <div style="display: flex; gap: 8px;">
-        <button class="btn btn-green status-toggle" onclick="setAviMode(true)">FAIR</button>
-        <button class="btn btn-red status-toggle" onclick="setAviMode(false)">PROFIT</button>
+<div id="paymentsSec" class="section">
+    <div class="card">
+        <h3>Pending Requests</h3>
+        <div id="combinedPayments"></div>
     </div>
 </div>
 
-<div class="section">
-    <h3>WITHDRAWALS</h3>
-    <div id="witList" class="req-list"></div>
+<div id="playersSec" class="section">
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="margin:0; border:none;">Player Database</h3>
+            <button onclick="clearAllPlayers()" style="background:var(--red); color:white; border:none; padding:5px 10px; border-radius:4px; font-size:10px;">CLEAR ALL</button>
+        </div>
+        <div id="playerList"></div>
+    </div>
 </div>
 
-<div class="section">
-    <h3>DEPOSITS</h3>
-    <div id="depList" class="req-list"></div>
+<div class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('gamesSec', this)"><i class="fas fa-gamepad"></i>GAMES</div>
+    <div class="nav-item" onclick="switchTab('paymentsSec', this)"><i class="fas fa-wallet"></i>PAYMENTS</div>
+    <div class="nav-item" onclick="switchTab('playersSec', this)"><i class="fas fa-users"></i>PLAYERS</div>
 </div>
 
 <script>
@@ -108,18 +100,45 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. TODAY USER COUNTER
-    function syncUsers() {
+    function switchTab(id, el) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        el.classList.add('active');
+    }
+
+    // --- Player Management ---
+    function syncData() {
         const today = new Date().toISOString().split('T')[0];
         db.ref('users').on('value', snap => {
-            let count = 0;
-            snap.forEach(u => { if(u.val().regDate === today) count++; });
-            document.getElementById('todayUsersCount').innerText = count;
+            let tCount = 0; let pList = "";
+            snap.forEach(u => {
+                const user = u.val();
+                if(user.regDate === today) tCount++;
+                pList += `
+                <div class="user-row">
+                    <div class="user-info">
+                        <span>ID: ${u.key.slice(-8)}</span>
+                        <span style="color:var(--gold)">Bal: ₹${(user.balance || 0).toFixed(2)}</span>
+                    </div>
+                    <div class="user-sub">
+                        <span>Joined: ${user.regDate || 'Old'}</span>
+                        <span style="color:var(--green)">Total Dep: ₹${user.totalDeposit || 0}</span>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('todayUsersCount').innerText = tCount;
+            document.getElementById('playerList').innerHTML = pList || "No users found";
         });
     }
-    syncUsers();
 
-    // 2. WINGO LOGIC
+    function clearAllPlayers() {
+        if(confirm("Attention! Are you sure you want to delete ALL players data?")) {
+            db.ref('users').remove();
+        }
+    }
+
+    // --- Wingo & Aviator logic ---
     let curP = "";
     setInterval(() => {
         const n = new Date();
@@ -141,74 +160,56 @@
             document.getElementById('numBets').innerHTML = h;
         });
     }
+    function forceWingo(v) { db.ref('gameControl/nextResult').set(v); }
     function setWingoMode(m) { db.ref('gameControl/mode').set(m); }
     db.ref('gameControl/mode').on('value', snap => {
         const m = snap.val() || 'profit';
         document.getElementById('winModeDisp').innerText = m.toUpperCase() + " MODE";
         document.getElementById('winModeDisp').style.color = m==='fair'?'var(--green)':'var(--red)';
     });
-    function forceWingo(v) { db.ref('gameControl/nextResult').set(v); }
 
-    // 3. AVIATOR LOGIC
-    function quickCrash(v, id) {
-        document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('active'));
-        if(id) document.getElementById(id).classList.add('active');
-        db.ref('aviator/control/nextCrash').set(v);
-    }
-    function setManualCrash() { let v = document.getElementById('nextCrash').value; if(v>=1) quickCrash(parseFloat(v)); }
+    // --- Aviator ---
+    function quickCrash(v) { db.ref('aviator/control/nextCrash').set(v); }
     function setAviMode(s) { db.ref('aviator/control/active').set(s); }
-    
-    db.ref('aviator/control/active').on('value', snap => {
-        let a = snap.val();
-        document.getElementById('aviModeDisp').innerText = a ? "FAIR" : "PROFIT";
-        document.getElementById('aviModeDisp').style.color = a ? "var(--green)" : "var(--red)";
-    });
-
     db.ref('aviator/live').on('value', snap => {
-        let total = 0, h = "";
-        snap.forEach(c => {
-            let b = c.val(); total += Number(b.amt||0);
-            h += `<div class="bet-row"><span>UID: ${c.key.slice(-5)}</span><span style="color:var(--gold)">₹${b.amt}</span></div>`;
-        });
+        let total = 0; snap.forEach(c => { total += Number(c.val().amt||0); });
         document.getElementById('aviTotalLoad').innerText = "₹" + total;
-        document.getElementById('aviPlayerList').innerHTML = h || "No active bets";
     });
 
-    // 4. PAYMENTS (WITH REJECT LOGIC)
-    db.ref('requests/withdrawals').on('value', snap => {
-        let h = "";
-        snap.forEach(c => {
-            let w = c.val();
-            if(w.status === 'pending') {
-                h += `<div class="req-item"><b>UID: ${w.uid}</b> - ₹${w.amount}<br>
-                    <button class="btn btn-green" onclick="handleW('${c.key}','success')">PAID</button>
-                    <button class="btn btn-red" onclick="handleW('${c.key}','rejected','${w.uid}',${w.amount})">REJECT</button></div>`;
-            }
-        });
-        document.getElementById('witList').innerHTML = h || "Empty";
-    });
-    function handleW(k, s, u, a) {
-        if(s==='rejected') db.ref('users/'+u+'/balance').transaction(c => (Number(c)||0) + Number(a));
-        db.ref('requests/withdrawals/'+k).update({status:s});
-    }
-
-    db.ref('requests/deposits').on('value', snap => {
-        let h = "";
-        snap.forEach(c => {
-            let d = c.val();
+    // --- Payments ---
+    db.ref('requests').on('value', snap => {
+        let html = "";
+        snap.child('deposits').forEach(c => {
+            const d = c.val();
             if(d.status === 'pending') {
-                h += `<div class="req-item"><b>UID: ${d.uid}</b> - ₹${d.amount}<br>
-                    <button class="btn btn-green" style="width:100%" onclick="appD('${c.key}','${d.uid}',${d.amount})">APPROVE</button></div>`;
+                html += `<div class="req-item"><b>DEP</b> ID: ${d.uid.slice(-6)} | ₹${d.amount}<br><button class="btn btn-green" onclick="appD('${c.key}','${d.uid}',${d.amount})">APPROVE</button></div>`;
             }
         });
-        document.getElementById('depList').innerHTML = h || "Empty";
+        snap.child('withdrawals').forEach(c => {
+            const w = c.val();
+            if(w.status === 'pending') {
+                html += `<div class="req-item"><b>WIT</b> ID: ${w.uid.slice(-6)} | ₹${w.amount}<br><button class="btn btn-green" onclick="handleW('${c.key}','success')">PAID</button> <button class="btn btn-red" onclick="handleW('${c.key}','rejected','${w.uid}',${w.amount})">REJECT</button></div>`;
+            }
+        });
+        document.getElementById('combinedPayments').innerHTML = html || "No pending requests";
     });
-    function appD(k, u, a) {
-        db.ref('users/'+u+'/balance').transaction(c => (Number(c)||0) + Number(a));
-        db.ref('requests/deposits/'+k).update({status:'success'});
+
+    function appD(k, u, a) { 
+        db.ref('users/'+u).transaction(user => {
+            if(user) {
+                user.balance = (Number(user.balance)||0) + Number(a);
+                user.totalDeposit = (Number(user.totalDeposit)||0) + Number(a);
+            }
+            return user;
+        });
+        db.ref('requests/deposits/'+k).update({status:'success'}); 
     }
+    function handleW(k, s, u, a) { if(s==='rejected') db.ref('users/'+u+'/balance').transaction(c => (Number(c)||0) + Number(a)); db.ref('requests/withdrawals/'+k).update({status:s}); }
+
+    syncData();
 </script>
 </body>
 </html>
+
 
 
