@@ -7,7 +7,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <style>
         :root { 
             --bg-dark: #06091b; --card-bg: #10142d; --cyan: #00ffca; 
@@ -108,10 +107,8 @@
         <div class="top-bar"><b>Full History</b></div>
         <div style="padding: 10px 15px;">
             <input type="number" id="searchHist" placeholder="Search by Mobile Number" oninput="filterHistory()" style="margin-bottom: 15px; border-color: var(--cyan);">
-            
             <h5 style="color:var(--cyan); border-bottom: 1px solid #1f2855; padding-bottom:5px;">Deposit Records</h5>
             <div id="fullDepHistory"></div>
-            
             <h5 style="color:var(--red); border-bottom: 1px solid #1f2855; padding-bottom:5px; margin-top:20px;">Withdrawal Records</h5>
             <div id="fullWitHistory"></div>
         </div>
@@ -186,6 +183,7 @@
 
     function initApp() {
         document.getElementById('refLink').innerText = "https://jalwa-v7.vercel.app/?ref=" + userPhone;
+        // BALANCE SYNC - Path: users/PHONE
         db.ref('users/' + userPhone).on('value', snap => {
             const d = snap.val();
             if(d) {
@@ -204,7 +202,7 @@
         const snap = await db.ref('users/' + ph).once('value');
         if(document.getElementById('tab-reg').classList.contains('active')) {
             if(snap.exists()) return showToast("Already exists!");
-            await db.ref('users/' + ph).set({ password: ps, balance: 0, totalDeposit: 0, invitedBy: ref, lastCheckin: "" });
+            await db.ref('users/' + ph).set({ phone: ph, password: ps, balance: 0, totalDeposit: 0, invitedBy: ref, lastCheckin: "" });
         } else {
             if(!snap.exists() || snap.val().password !== ps) return showToast("Wrong Details!");
         }
@@ -212,8 +210,8 @@
         location.reload();
     }
 
+    // ... LoadHistory, Filter, ShowPage functions (Rest as per your code) ...
     function loadHistory() {
-        // Deposits
         db.ref('requests/deposits').orderByChild('uid').equalTo(userPhone).on('value', snap => {
             const list = document.getElementById('fullDepHistory'); list.innerHTML = "";
             snap.forEach(i => {
@@ -225,7 +223,6 @@
                 </div>`;
             });
         });
-        // Withdrawals
         db.ref('requests/withdrawals').orderByChild('uid').equalTo(userPhone).on('value', snap => {
             const list = document.getElementById('fullWitHistory'); list.innerHTML = "";
             snap.forEach(i => {
