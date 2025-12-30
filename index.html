@@ -10,22 +10,12 @@
     <style>
         :root { 
             --bg-dark: #06091b; --card-bg: #10142d; --cyan: #00ffca; 
-            --text-gray: #7e87a8; --gold: #ffd700; --red: #ff4d4d;
+            --text-gray: #7e87a8; --gold: #ffd700; --red: #ff4d4d; --green: #2ecc71;
             --blue-gradient: linear-gradient(180deg, #1a237e 0%, #06091b 100%);
             --neon-glow: 0 0 15px var(--cyan);
         }
         body { margin: 0; background: var(--bg-dark); font-family: 'Segoe UI', sans-serif; color: white; overflow-x: hidden; }
         .app-container { width: 100%; max-width: 480px; margin: auto; min-height: 100vh; padding-bottom: 90px; }
-
-        /* POPUP UI */
-        #bonusOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 30000; display: none; align-items: center; justify-content: center; }
-        .popup-box { background: #161d3d; width: 85%; border-radius: 20px; border: 2px solid var(--cyan); box-shadow: var(--neon-glow); text-align: center; overflow: hidden; }
-        .popup-box h2 { background: var(--cyan); color: #000; margin: 0; padding: 15px; font-size: 20px; }
-        .popup-body { padding: 20px; }
-        .btn-grab { background: var(--cyan); color: #000; width: 100%; border: none; padding: 12px; border-radius: 30px; font-weight: bold; margin-top: 15px; cursor: pointer; }
-        
-        .stop-today-container { margin-top: 15px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--text-gray); gap: 8px; }
-        .stop-today-container input { width: auto; margin: 0; cursor: pointer; accent-color: var(--cyan); }
 
         .page { display: none; animation: fadeIn 0.3s; position: relative; min-height: 100vh; background: var(--bg-dark); }
         .page.active { display: block; }
@@ -36,8 +26,14 @@
 
         .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
         .game-card { background: #161d3d; border-radius: 15px; padding: 25px 15px; text-align: center; border: 1px solid #1f2855; cursor: pointer; transition: 0.3s; text-decoration: none; color: white; }
-        .game-card:active { transform: scale(0.95); }
         .card { background: var(--card-bg); border-radius: 15px; padding: 15px; border: 1px solid #1f2855; margin: 15px; }
+
+        /* History Buttons UI */
+        .history-btn { background: #161d3d; padding: 15px; border-radius: 12px; margin: 10px 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #1f2855; cursor: pointer; }
+        .hist-item-new { background: #10142d; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid var(--text-gray); display: flex; justify-content: space-between; font-size: 13px; }
+        .status-success { border-left-color: var(--green); color: var(--green); }
+        .status-pending { border-left-color: var(--gold); color: var(--gold); }
+        .status-rejected { border-left-color: var(--red); color: var(--red); }
 
         .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: #10142d; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #1f2855; z-index: 1000; }
         .nav-item { text-align: center; color: var(--text-gray); font-size: 11px; cursor: pointer; }
@@ -47,8 +43,6 @@
         input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #1f2855; background: #06091b; color: white; box-sizing: border-box; }
         .btn-main { width: 100%; background: var(--cyan); color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; }
         #notif { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--cyan); color: black; padding: 10px 20px; border-radius: 30px; display: none; z-index: 40000; font-size: 14px; font-weight: bold; }
-        
-        .hist-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1f2855; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -58,7 +52,7 @@
 <div class="app-container">
     <div id="home" class="page active">
         <div class="top-bar">
-            <div style="font-size:22px; font-weight:900; color:var(--cyan); letter-spacing: 1px;">JALWA</div>
+            <div style="font-size:22px; font-weight:900; color:var(--cyan);">JALWA</div>
             <div style="background: #161d3d; padding: 5px 15px; border-radius: 20px; border: 1px solid var(--cyan);">
                 <i class="fas fa-wallet" style="color:var(--gold)"></i> <span id="globalBalance">₹0.00</span>
             </div>
@@ -88,10 +82,27 @@
             <button class="btn-main" onclick="showPage('deposit')">DEPOSIT</button>
             <button class="btn-main" style="background:white" onclick="showPage('withdraw')">WITHDRAW</button>
         </div>
-        <div class="card" style="display:flex; justify-content: space-around; text-align:center;">
-            <div><small style="color:var(--text-gray)">Total Deposit</small><br><b id="totalDep">₹0.00</b></div>
-            <div><small style="color:var(--text-gray)">Total Withdraw</small><br><b id="totalWith">₹0.00</b></div>
+        
+        <div class="history-btn" onclick="openHistory('deposits')">
+            <span><i class="fas fa-file-invoice-dollar" style="color:var(--green)"></i> Deposit History</span>
+            <i class="fas fa-chevron-right"></i>
         </div>
+        <div class="history-btn" onclick="openHistory('withdrawals')">
+            <span><i class="fas fa-receipt" style="color:var(--red)"></i> Withdrawal History</span>
+            <i class="fas fa-chevron-right"></i>
+        </div>
+    </div>
+
+    <div id="historyPage" class="page">
+        <div class="top-bar">
+            <b id="histTitle">History</b>
+            <i class="fas fa-times-circle close-btn" onclick="showPage('wallet')"></i>
+        </div>
+        <div class="card" style="text-align: center; background: #1a237e; border:none;">
+            <small id="totalLabel" style="color:var(--text-gray)">Total Success</small>
+            <h2 id="totalHistAmt" style="margin: 5px 0; color: var(--cyan);">₹0.00</h2>
+        </div>
+        <div id="histList" style="padding:0 15px;"></div>
     </div>
 
     <div id="deposit" class="page">
@@ -146,7 +157,7 @@
                 <i class="fas fa-chevron-down" id="histIcon"></i>
             </div>
             <div id="historyContent" style="padding: 15px; display: none; background: #06091b;">
-                <div class="hist-item"><span>Check Games for results</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1f2855; font-size: 13px;"><span>Check Games for results</span></div>
             </div>
         </div>
         <button class="btn-main" style="background:var(--red); color:white; width:90%; margin:20px 5%; border-radius: 30px;" onclick="location.reload()">LOG OUT</button>
@@ -165,27 +176,20 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // User ID setup
-    let userId = localStorage.getItem('jalwa_id');
-    if(!userId) {
-        userId = 'UID' + Math.floor(Math.random() * 900000 + 100000);
-        localStorage.setItem('jalwa_id', userId);
-    }
+    let userId = localStorage.getItem('jalwa_id') || ('UID' + Math.floor(Math.random() * 900000 + 100000));
+    localStorage.setItem('jalwa_id', userId);
     document.getElementById('userUIDDisplay').innerText = userId;
 
-    let userBalance = 0, totalDeposit = 0, totalWithdraw = 0;
+    let userBalance = 0;
 
-    // --- SYNC WITH ADMIN ---
+    // --- SYNC DATA ---
     db.ref('users/' + userId).on('value', snap => {
         const data = snap.val();
         if(data) {
             userBalance = data.balance || 0;
-            totalDeposit = data.totalDeposit || 0;
-            totalWithdraw = data.totalWithdraw || 0;
             updateUI();
         } else {
-            // New user init
-            db.ref('users/' + userId).set({ balance: 0, totalDeposit: 0, totalWithdraw: 0, name: 'User_'+userId });
+            db.ref('users/' + userId).set({ balance: 0, totalDeposit: 0, totalWithdraw: 0 });
         }
     });
 
@@ -194,60 +198,59 @@
         document.getElementById('globalBalance').innerText = bal;
         if(document.getElementById('walBal')) document.getElementById('walBal').innerText = bal;
         if(document.getElementById('accBal')) document.getElementById('accBal').innerText = bal;
-        if(document.getElementById('totalDep')) document.getElementById('totalDep').innerText = '₹' + totalDeposit.toFixed(2);
-        if(document.getElementById('totalWith')) document.getElementById('totalWith').innerText = '₹' + totalWithdraw.toFixed(2);
     }
 
-    // --- ADMIN CONNECTED DEPOSIT ---
+    // --- DEPOSIT & WITHDRAW HANDLERS ---
     async function handleDeposit() {
         let amt = parseFloat(document.getElementById('dAmt').value);
         let utr = document.getElementById('dUTR').value;
         if(amt >= 500 && utr.length >= 10) {
-            // Push to Admin Requests
-            await db.ref('requests/deposits').push({
-                uid: userId,
-                amount: amt,
-                utr: utr,
-                status: 'pending',
-                time: Date.now()
-            });
-            showNotif("Deposit Request Sent to Admin!");
-            document.getElementById('dAmt').value = "";
-            document.getElementById('dUTR').value = "";
+            await db.ref('requests/deposits').push({ uid: userId, amount: amt, utr: utr, status: 'pending', time: Date.now() });
+            showNotif("Deposit Request Sent!");
             showPage('wallet');
-        } else { showNotif("Min ₹500 & Valid UTR!"); }
+        } else { showNotif("Invalid Details!"); }
     }
 
-    // --- ADMIN CONNECTED WITHDRAW ---
     async function handleWithdraw() {
         let amt = parseFloat(document.getElementById('wAmt').value);
         let upi = document.getElementById('wUPI').value;
-        if(amt >= 550 && amt <= userBalance && upi.length > 5) {
-            // Deduct balance immediately (Admin will refund if rejected)
+        if(amt >= 550 && amt <= userBalance) {
             await db.ref('users/' + userId).update({ balance: userBalance - amt });
-            // Push to Admin Requests
-            await db.ref('requests/withdrawals').push({
-                uid: userId,
-                amount: amt,
-                upi: upi,
-                status: 'pending',
-                time: Date.now()
-            });
+            await db.ref('requests/withdrawals').push({ uid: userId, amount: amt, upi: upi, status: 'pending', time: Date.now() });
             showNotif("Withdrawal Requested!");
-            document.getElementById('wAmt').value = "";
-            document.getElementById('wUPI').value = "";
-        } else { showNotif("Check Balance or Min ₹550!"); }
+            showPage('wallet');
+        } else { showNotif("Check Balance or Min ₹550"); }
     }
 
-    async function claimDaily() {
-        let today = new Date().toDateString();
-        let last = localStorage.getItem('lastClaim');
-        if(last === today) return showNotif("Already claimed today!");
-        await db.ref('users/' + userId).update({ balance: userBalance + 20 });
-        localStorage.setItem('lastClaim', today);
-        showNotif("₹20 Reward Added!");
+    // --- HISTORY LOGIC ---
+    function openHistory(type) {
+        showPage('historyPage');
+        const listDiv = document.getElementById('histList');
+        const totalDisp = document.getElementById('totalHistAmt');
+        document.getElementById('histTitle').innerText = type === 'deposits' ? "Deposit History" : "Withdrawal History";
+        document.getElementById('totalLabel').innerText = type === 'deposits' ? "Total Success Deposit" : "Total Success Withdrawal";
+        
+        listDiv.innerHTML = "<p style='text-align:center;'>Loading...</p>";
+
+        db.ref('requests/' + type).orderByChild('uid').equalTo(userId).on('value', snap => {
+            let html = "", total = 0, items = [];
+            snap.forEach(c => {
+                let d = c.val();
+                items.push(d);
+                if(d.status === 'success') total += Number(d.amount);
+            });
+            items.reverse().forEach(d => {
+                html += `<div class="hist-item-new status-${d.status}">
+                    <div><b>₹${d.amount}</b><br><small>${new Date(d.time).toLocaleDateString()}</small></div>
+                    <div style="text-align:right"><b>${d.status.toUpperCase()}</b><br><small style="font-size:10px">${d.utr || d.upi}</small></div>
+                </div>`;
+            });
+            listDiv.innerHTML = html || "<p style='text-align:center;'>No History Found</p>";
+            totalDisp.innerText = "₹" + total.toFixed(2);
+        });
     }
 
+    // --- GENERAL FUNCTIONS ---
     function showPage(pId, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pId).classList.add('active');
@@ -270,9 +273,15 @@
 
     function toggleHistory() {
         const content = document.getElementById('historyContent');
-        const icon = document.getElementById('histIcon');
         content.style.display = content.style.display === 'none' ? 'block' : 'none';
-        icon.className = content.style.display === 'none' ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+    }
+
+    async function claimDaily() {
+        let today = new Date().toDateString();
+        if(localStorage.getItem('lastClaim') === today) return showNotif("Already claimed today!");
+        await db.ref('users/' + userId).update({ balance: userBalance + 20 });
+        localStorage.setItem('lastClaim', today);
+        showNotif("₹20 Reward Added!");
     }
 </script>
 </body>
