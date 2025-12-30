@@ -22,26 +22,21 @@
         .popup-body { padding: 20px; }
         .btn-grab { background: var(--cyan); color: #000; width: 100%; border: none; padding: 12px; border-radius: 30px; font-weight: bold; margin-top: 15px; cursor: pointer; }
         
-        /* Stop Today Styling */
         .stop-today-container { margin-top: 15px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--text-gray); gap: 8px; }
         .stop-today-container input { width: auto; margin: 0; cursor: pointer; accent-color: var(--cyan); }
 
-        /* PAGE SYSTEM */
         .page { display: none; animation: fadeIn 0.3s; position: relative; min-height: 100vh; background: var(--bg-dark); }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* TOP BAR & CLOSE BUTTON */
         .top-bar { padding: 15px; display: flex; align-items: center; background: #10142d; border-bottom: 1px solid #1f2855; justify-content: space-between; }
         .close-btn { font-size: 24px; color: var(--red); cursor: pointer; }
 
-        /* CARDS & GRID */
         .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
         .game-card { background: #161d3d; border-radius: 15px; padding: 25px 15px; text-align: center; border: 1px solid #1f2855; cursor: pointer; transition: 0.3s; text-decoration: none; color: white; }
         .game-card:active { transform: scale(0.95); }
         .card { background: var(--card-bg); border-radius: 15px; padding: 15px; border: 1px solid #1f2855; margin: 15px; }
 
-        /* NAVIGATION */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: #10142d; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #1f2855; z-index: 1000; }
         .nav-item { text-align: center; color: var(--text-gray); font-size: 11px; cursor: pointer; }
         .nav-item.active { color: var(--cyan); }
@@ -50,6 +45,9 @@
         input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #1f2855; background: #06091b; color: white; box-sizing: border-box; }
         .btn-main { width: 100%; background: var(--cyan); color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         #notif { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--cyan); color: black; padding: 10px 20px; border-radius: 30px; display: none; z-index: 40000; font-size: 14px; font-weight: bold; }
+        
+        /* History Item Style */
+        .hist-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1f2855; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -61,12 +59,10 @@
             <p>Add ₹500 & Get <b>₹100 Bonus</b></p>
             <p>Add ₹1000 & Get <b>₹250 Bonus</b></p>
             <button class="btn-grab" onclick="showPage('deposit'); closeBonus();">RECHARGE NOW</button>
-            
             <div class="stop-today-container">
                 <input type="checkbox" id="stopToday">
                 <label for="stopToday">Stop today</label>
             </div>
-
             <button style="background:transparent; color:var(--text-gray); border:none; margin-top:10px; cursor:pointer;" onclick="closeBonus()">Close</button>
         </div>
     </div>
@@ -83,11 +79,9 @@
                 <i class="fas fa-wallet" style="color:var(--gold)"></i> <span id="globalBalance">₹0.00</span>
             </div>
         </div>
-
-        <div style="margin: 15px 15px 5px; background: rgba(0,255,202,0.1); padding: 8px; border-radius: 5px;">
-            <marquee style="font-size: 12px; color: var(--cyan);">🔥 Big Win: UID 9928 won ₹12,400 in WinGo! | ⚡ Withdrawals are processed instantly. | 🎁 Claim Daily Reward in Activity section.</marquee>
+        <div style="margin: 15px; background: rgba(0,255,202,0.1); padding: 8px; border-radius: 5px;">
+            <marquee style="font-size: 12px; color: var(--cyan);">⚡ Withdrawals are processed instantly. | 🎁 Claim Daily Reward in Activity section.</marquee>
         </div>
-
         <div class="game-grid">
             <a href="game.html" class="game-card" style="border-color:var(--cyan)">
                 <i class="fas fa-dice" style="font-size:40px; color:var(--cyan); margin-bottom:10px;"></i><br>
@@ -101,10 +95,7 @@
     </div>
 
     <div id="wallet" class="page">
-        <div class="top-bar">
-            <b>My Wallet</b>
-            <i class="fas fa-times-circle close-btn" onclick="showPage('home')"></i>
-        </div>
+        <div class="top-bar"><b>My Wallet</b><i class="fas fa-times-circle close-btn" onclick="showPage('home')"></i></div>
         <div style="background: var(--blue-gradient); padding: 40px 20px; text-align: center;">
             <h1 id="walBal" style="margin: 0; font-size: 45px; color:var(--cyan);">₹0.00</h1>
             <p style="color:var(--text-gray); margin-top:5px;">Available Balance</p>
@@ -120,31 +111,24 @@
     </div>
 
     <div id="deposit" class="page">
-        <div class="top-bar">
-            <b>Add Cash</b>
-            <i class="fas fa-times-circle close-btn" onclick="showPage('wallet')"></i>
-        </div>
+        <div class="top-bar"><b>Add Cash</b><i class="fas fa-times-circle close-btn" onclick="showPage('wallet')"></i></div>
         <div class="card">
             <p style="color:var(--red); font-weight:bold;">Minimum Recharge: ₹500</p>
-            <label style="font-size:12px; color:var(--text-gray)">Copy UPI ID</label>
-            <div style="background:#06091b; padding:12px; border-radius:8px; display:flex; justify-content:space-between; border:1px solid var(--cyan); margin:8px 0 20px;">
+            <div style="background:#06091b; padding:12px; border-radius:8px; display:flex; justify-content:space-between; border:1px solid var(--cyan); margin-bottom:15px;">
                 <span id="upiId">d28122004@ptyes</span>
                 <i class="fas fa-copy" style="color:var(--cyan)" onclick="copyText('upiId')"></i>
             </div>
             <input type="number" id="dAmt" placeholder="Enter Amount">
             <input type="text" id="dUTR" placeholder="12-Digit UTR Number">
-            <button class="btn-main" style="margin-top:10px;" onclick="handleDeposit()">SUBMIT DEPOSIT</button>
+            <button class="btn-main" onclick="handleDeposit()">SUBMIT DEPOSIT</button>
         </div>
     </div>
 
     <div id="withdraw" class="page">
-        <div class="top-bar">
-            <b>Withdraw Cash</b>
-            <i class="fas fa-times-circle close-btn" onclick="showPage('wallet')"></i>
-        </div>
+        <div class="top-bar"><b>Withdraw Cash</b><i class="fas fa-times-circle close-btn" onclick="showPage('wallet')"></i></div>
         <div class="card">
-            <p style="color:var(--red); font-weight:bold;">Min Withdrawal: ₹550</p>
-            <input type="text" id="wUPI" placeholder="Enter UPI ID (e.g. name@upi)">
+            <p style="color:var(--red); font-weight:bold;">Minimum Withdrawal: ₹550</p>
+            <input type="text" id="wUPI" placeholder="Enter UPI ID">
             <input type="number" id="wAmt" placeholder="Withdrawal Amount">
             <button class="btn-main" onclick="handleWithdraw()">CONFIRM WITHDRAW</button>
         </div>
@@ -154,46 +138,45 @@
         <div class="top-bar"><b>Promotions</b></div>
         <div class="card" style="text-align: center; border: 1px solid var(--gold); background: #1a1e3a;">
             <h3 style="color:var(--gold)">INVITE FRIENDS</h3>
-            <p style="font-size:14px;">Recharge ₹500 & Get <b>₹200 Bonus</b>!</p>
-            <div style="background:#06091b; padding:12px; border-radius:8px; display:flex; justify-content:space-between; border:1px dashed var(--cyan); margin:15px 0;">
-                <span id="refLink" style="font-size: 11px;">https://rebrand.ly/2cuhjgg</span>
+            <p>Recharge ₹500 & Get <b>₹200 Bonus</b>!</p>
+            <div style="background:#06091b; padding:10px; border-radius:8px; display:flex; justify-content:space-between; border:1px dashed var(--cyan);">
+                <span id="refLink" style="font-size:11px;">https://rebrand.ly/2cuhjgg</span>
                 <i class="fas fa-copy" style="color:var(--cyan)" onclick="copyText('refLink')"></i>
             </div>
         </div>
-        <div class="card" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="claimDaily()">
-            <div><b>Daily Reward</b><br><small style="color:var(--text-gray)">Claim ₹20 every 24 hours</small></div>
-            <i class="fas fa-gift" style="font-size:30px; color:var(--cyan)"></i>
+        <div class="card" onclick="claimDaily()" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+            <div><b>Daily Reward</b><br><small>Claim ₹20 daily</small></div>
+            <i class="fas fa-gift" style="font-size:25px; color:var(--cyan)"></i>
         </div>
     </div>
 
     <div id="account" class="page">
         <div style="text-align: center; padding: 40px 15px; background: #161d3d;">
-            <div style="width:75px; height:75px; background:var(--cyan); border-radius:50%; margin: 10px auto; border:3px solid white;"></div>
-            <h3 style="margin:0;">UID: 8754538</h3>
+            <div style="width:70px; height:70px; background:var(--cyan); border-radius:50%; margin: auto; border:3px solid white;"></div>
+            <h3>UID: 8754538</h3>
             <h2 id="accBal" style="color:var(--cyan); margin:10px 0;">₹0.00</h2>
         </div>
-        <div class="card" style="padding:0; margin-top:-10px;">
-            <div style="padding:15px; display:flex; justify-content:space-between;" onclick="toggleHistory()">
-                <span><i class="fas fa-history" style="color:var(--cyan); margin-right:10px;"></i> My Game History</span>
-                <i class="fas fa-chevron-down"></i>
+        
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <div style="padding: 15px; background: #1a237e; display: flex; justify-content: space-between; align-items: center;" onclick="toggleHistory()">
+                <span><i class="fas fa-history" style="margin-right: 10px;"></i> My Game History</span>
+                <i class="fas fa-chevron-down" id="histIcon"></i>
             </div>
-            <div id="gameHistory" style="display:none; padding:10px; background:#06091b;">
-                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1f2855; font-size:12px;">
-                    <span>WinGo #88</span><span style="color:var(--cyan)">+₹190 (Win)</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; padding:8px 0; font-size:12px;">
-                    <span>Aviator #12</span><span style="color:var(--red)">-₹100 (Loss)</span>
-                </div>
+            <div id="historyContent" style="padding: 0 15px; display: none; background: #06091b;">
+                <div class="hist-item"><span>WinGo #382</span> <span style="color:var(--cyan)">+₹190.00</span></div>
+                <div class="hist-item"><span>WinGo #381</span> <span style="color:var(--red)">-₹100.00</span></div>
+                <div class="hist-item"><span>Aviator #92</span> <span style="color:var(--cyan)">+₹450.00</span></div>
             </div>
         </div>
-        <button class="btn-main" style="background:var(--red); color:white; width:90%; margin:20px 5%; border-radius:30px;" onclick="location.reload()">LOG OUT</button>
+
+        <button class="btn-main" style="background:var(--red); color:white; width:90%; margin:20px 5%; border-radius: 30px;" onclick="location.reload()">LOG OUT</button>
     </div>
 
     <div class="bottom-nav">
         <div class="nav-item active" onclick="showPage('home', this)"><i class="fas fa-home"></i>Home</div>
         <div class="nav-item" onclick="showPage('activity', this)"><i class="fas fa-gift"></i>Activity</div>
         <div class="nav-item" onclick="showPage('wallet', this)"><i class="fas fa-wallet"></i>Wallet</div>
-        <div class="nav-item" onclick="showPage('account', this)"><i class="fas fa-user"></i>Account</div>
+        <div class="nav-item" onclick="showPage('account', this)"><i class="fas fa-user-circle"></i>Account</div>
     </div>
 </div>
 
@@ -206,35 +189,29 @@
     };
 
     function updateDisplay() {
-        const bal = '₹' + userData.balance.toFixed(2);
+        const bal = '₹' + parseFloat(userData.balance).toFixed(2);
         document.getElementById('globalBalance').innerText = bal;
-        document.getElementById('walBal').innerText = bal;
-        document.getElementById('accBal').innerText = bal;
-        document.getElementById('totalDep').innerText = '₹' + userData.totalDeposit.toFixed(2);
-        document.getElementById('totalWith').innerText = '₹' + userData.totalWithdraw.toFixed(2);
+        if(document.getElementById('walBal')) document.getElementById('walBal').innerText = bal;
+        if(document.getElementById('accBal')) document.getElementById('accBal').innerText = bal;
+        if(document.getElementById('totalDep')) document.getElementById('totalDep').innerText = '₹' + parseFloat(userData.totalDeposit).toFixed(2);
+        if(document.getElementById('totalWith')) document.getElementById('totalWith').innerText = '₹' + parseFloat(userData.totalWithdraw).toFixed(2);
         localStorage.setItem('jalwa_user', JSON.stringify(userData));
     }
 
-    // New Popup Logic
     function checkPopup() {
-        const stopDate = localStorage.getItem('stopPopupDate');
-        const today = new Date().toDateString();
-        
-        if (stopDate !== today) {
+        if (localStorage.getItem('stopPopupDate') !== new Date().toDateString()) {
             document.getElementById('bonusOverlay').style.display = 'flex';
         }
     }
 
     function closeBonus() {
-        if (document.getElementById('stopToday').checked) {
-            localStorage.setItem('stopPopupDate', new Date().toDateString());
-        }
+        if (document.getElementById('stopToday').checked) localStorage.setItem('stopPopupDate', new Date().toDateString());
         document.getElementById('bonusOverlay').style.display = 'none';
     }
 
-    function showPage(pageId, el) {
+    function showPage(pId, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
+        document.getElementById(pId).classList.add('active');
         if(el) {
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             el.classList.add('active');
@@ -252,44 +229,49 @@
         showNotif("Copied!");
     }
 
+    function toggleHistory() {
+        const content = document.getElementById('historyContent');
+        const icon = document.getElementById('histIcon');
+        if(content.style.display === 'none') {
+            content.style.display = 'block';
+            icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+        } else {
+            content.style.display = 'none';
+            icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+        }
+    }
+
     function handleDeposit() {
         let amt = parseFloat(document.getElementById('dAmt').value);
-        if(isNaN(amt) || amt < 500) return showNotif("Min ₹500!");
-        userData.balance += amt;
-        userData.totalDeposit += amt;
-        updateDisplay();
-        showNotif("Deposit Success!");
-        showPage('wallet');
+        if(amt >= 500) {
+            userData.balance += amt;
+            userData.totalDeposit += amt;
+            updateDisplay();
+            showNotif("Deposit Success!");
+            showPage('wallet');
+        } else { showNotif("Min ₹500!"); }
     }
 
     function handleWithdraw() {
         let amt = parseFloat(document.getElementById('wAmt').value);
-        if(isNaN(amt) || amt < 550) return showNotif("Min ₹550!");
-        if(amt > userData.balance) return showNotif("Low Balance!");
-        userData.balance -= amt;
-        userData.totalWithdraw += amt;
-        updateDisplay();
-        showNotif("Withdrawal Requested!");
+        if(amt >= 550 && amt <= userData.balance) {
+            userData.balance -= amt;
+            userData.totalWithdraw += amt;
+            updateDisplay();
+            showNotif("Withdrawal Requested!");
+        } else { showNotif("Min ₹550 or Low Balance!"); }
     }
 
     function claimDaily() {
         let today = new Date().toDateString();
-        if(userData.lastClaim === today) return showNotif("Already claimed today!");
+        if(userData.lastClaim === today) return showNotif("Already claimed!");
         userData.balance += 20;
         userData.lastClaim = today;
         updateDisplay();
         showNotif("₹20 Claimed!");
     }
 
-    function toggleHistory() {
-        let h = document.getElementById('gameHistory');
-        h.style.display = h.style.display === 'none' ? 'block' : 'none';
-    }
-
-    window.onload = function() {
-        updateDisplay();
-        checkPopup();
-    };
+    window.onload = function() { updateDisplay(); checkPopup(); };
 </script>
 </body>
 </html>
