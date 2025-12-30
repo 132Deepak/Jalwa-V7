@@ -2,55 +2,298 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jalwa Pro - Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jalwa.Game - Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { margin: 0; background: #000; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .box { width: 90%; max-width: 380px; background: #0d131f; padding: 30px; border-radius: 25px; border: 1px solid #2d3a4f; text-align: center; }
-        input { width: 100%; padding: 15px; margin: 10px 0; background: #1f293a; border: 1px solid #2d3a4f; border-radius: 12px; color: white; box-sizing: border-box; outline: none; }
-        button { width: 100%; padding: 15px; background: #ff9800; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        button:active { transform: scale(0.98); opacity: 0.9; }
+        :root {
+            --bg-dark: #06091b;
+            --card-bg: #10142d;
+            --cyan: #00ffca;
+            --input-bg: #161d3d;
+            --text-gray: #7e87a8;
+            --neon-shadow: 0 0 5px var(--cyan), 0 0 10px var(--cyan), 0 0 20px var(--cyan);
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg-dark);
+            color: white;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Top Header & Neon Logo */
+        .header {
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-dark);
+        }
+        .logo { 
+            font-size: 24px; 
+            font-weight: bold; 
+            font-style: italic; 
+            color: var(--cyan);
+            text-shadow: var(--neon-shadow);
+            letter-spacing: 1px;
+        }
+        .logo span { color: #fff; text-shadow: none; }
+
+        .container { padding: 20px; flex: 1; }
+
+        h2 { font-size: 20px; margin-bottom: 5px; }
+        .sub-txt { color: var(--text-gray); font-size: 13px; margin-bottom: 25px; line-height: 1.4; }
+
+        /* Tabs Working */
+        .tabs { display: flex; border-bottom: 1px solid #242c54; margin-bottom: 25px; }
+        .tab {
+            flex: 1; text-align: center; padding: 12px;
+            color: var(--text-gray); font-weight: bold; font-size: 14px;
+            cursor: pointer; position: relative; transition: 0.3s;
+        }
+        .tab.active { color: var(--cyan); text-shadow: 0 0 5px var(--cyan); }
+        .tab.active::after {
+            content: ''; position: absolute; bottom: 0; left: 10%;
+            width: 80%; height: 3px; background: var(--cyan);
+            border-radius: 10px 10px 0 0; box-shadow: 0 0 8px var(--cyan);
+        }
+        .tab i { display: block; font-size: 20px; margin-bottom: 5px; }
+
+        /* Input Styles */
+        .input-group { margin-bottom: 20px; }
+        .label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #fff; margin-bottom: 10px; }
+        .label i { color: var(--cyan); font-size: 18px; }
+
+        .input-box {
+            display: flex; background: var(--input-bg);
+            border-radius: 8px; overflow: hidden; border: 1px solid #1f2855;
+        }
+        .country-code {
+            padding: 12px; background: #1c254d; border-right: 1px solid #1f2855;
+            display: flex; align-items: center; gap: 5px; font-size: 14px;
+        }
+        input {
+            width: 100%; padding: 14px; background: transparent;
+            border: none; color: white; outline: none; font-size: 15px;
+        }
+
+        .remember-row {
+            display: flex; align-items: center; gap: 8px;
+            color: var(--text-gray); font-size: 13px; margin-bottom: 30px; cursor: pointer;
+        }
+        .circle-check { 
+            width: 18px; height: 18px; border: 1px solid var(--text-gray); 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        }
+        .circle-check.checked { background: var(--cyan); border-color: var(--cyan); }
+        .circle-check.checked::after { content: '✓'; color: #000; font-size: 12px; font-weight: bold; }
+
+        /* Buttons */
+        .btn-login {
+            width: 100%; padding: 14px;
+            background: linear-gradient(to right, #2af598 0%, #009efd 100%);
+            border: none; border-radius: 25px; color: #000;
+            font-weight: bold; font-size: 16px; cursor: pointer;
+            margin-bottom: 15px; transition: 0.3s;
+        }
+        .btn-login:active { transform: scale(0.98); }
+
+        .btn-register {
+            width: 100%; padding: 14px; background: transparent;
+            border: 1px solid var(--cyan); border-radius: 25px;
+            color: var(--cyan); font-weight: bold; font-size: 16px;
+            cursor: pointer; box-shadow: inset 0 0 5px rgba(0,255,202,0.2);
+            text-align: center; text-decoration: none; display: block;
+        }
+
+        /* Footer Links */
+        .footer-links { display: flex; justify-content: space-around; margin-top: 30px; }
+        .f-item { text-align: center; color: var(--text-gray); font-size: 12px; cursor: pointer; transition: 0.2s; }
+        .f-item:active { transform: scale(0.9); }
+        .f-item i { display: block; font-size: 24px; color: var(--cyan); margin-bottom: 5px; filter: drop-shadow(0 0 3px var(--cyan)); }
+
+        /* Forget Pass Modal */
+        #forgetModal {
+            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.85); z-index: 5000; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: var(--card-bg); width: 85%; max-width: 350px; border-radius: 20px;
+            padding: 25px; border: 1px solid var(--cyan); box-shadow: var(--neon-shadow);
+        }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <h2 style="color: #ff9800;">JALWA PRO LOGIN</h2>
-    <input type="number" id="ph" placeholder="Phone Number">
-    <input type="password" id="ps" placeholder="Password">
-    <button onclick="login()">LOGIN TO PLAY</button>
-    <p style="font-size: 13px; color: #888; margin-top: 15px;">New Player? <a href="register.html" style="color: #ff9800; text-decoration: none;">Register</a></p>
+<div class="header">
+    <i class="fas fa-chevron-left" onclick="history.back()" style="cursor:pointer;"></i>
+    <div class="logo">Jalwa<span>.Game</span></div>
+    <div style="font-size: 12px; border: 1px solid #333; padding: 2px 8px; border-radius: 4px; cursor:pointer;">🇺🇸 EN</div>
+</div>
+
+<div class="container">
+    <h2>Log in</h2>
+    <p class="sub-txt">Please log in with your phone number or email<br>If you forget your password, please contact customer service</p>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('phone', this)"><i class="fas fa-mobile-alt"></i> phone number</div>
+        <div class="tab" onclick="switchTab('email', this)"><i class="far fa-envelope"></i> Email Login</div>
+    </div>
+
+    <div id="loginFields">
+        <div class="input-group">
+            <div class="label" id="inputLabel"><i class="fas fa-mobile-alt"></i> Phone number</div>
+            <div class="input-box">
+                <div id="countryPart" class="country-code">+91 <i class="fas fa-chevron-down" style="font-size: 10px;"></i></div>
+                <input type="text" id="userInput" placeholder="Please enter your phone number">
+            </div>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <div class="label"><i class="fas fa-lock"></i> Password</div>
+        <div class="input-box">
+            <input type="password" id="ps" placeholder="Please enter your password">
+            <i class="far fa-eye-slash" id="togglePass" style="padding:15px; color:var(--text-gray); cursor:pointer;" onclick="togglePassword('ps', this)"></i>
+        </div>
+    </div>
+
+    <div class="remember-row" onclick="this.children[0].classList.toggle('checked')">
+        <div class="circle-check"></div> Remember password
+    </div>
+
+    <button class="btn-login" onclick="login()">Log in</button>
+    <a href="register.html" class="btn-register">Register</a>
+
+    <div class="footer-links">
+        <div class="f-item" onclick="openForget()">
+            <i class="fas fa-shield-alt"></i>
+            Forgot password
+        </div>
+        <div class="f-item" onclick="window.open('https://t.me/Realtrademods8911', '_blank')">
+            <i class="fas fa-headset"></i>
+            Customer Service
+        </div>
+    </div>
+</div>
+
+<div id="forgetModal">
+    <div class="modal-content">
+        <h3 style="color:var(--cyan); margin-top:0;">Reset Password</h3>
+        <p style="font-size:12px; color:var(--text-gray);">Enter your details to set a new password.</p>
+        
+        <div class="input-group">
+            <div class="input-box">
+                <input type="text" id="resetUser" placeholder="Phone or Email">
+            </div>
+        </div>
+        <div class="input-group">
+            <div class="input-box">
+                <input type="password" id="resetNewPass" placeholder="New Password">
+                <i class="far fa-eye-slash" style="padding:15px; color:var(--text-gray);" onclick="togglePassword('resetNewPass', this)"></i>
+            </div>
+        </div>
+        
+        <button class="btn-login" onclick="resetPassword()">Update Password</button>
+        <p onclick="document.getElementById('forgetModal').style.display='none'" style="text-align:center; color:var(--text-gray); font-size:14px; margin-top:15px; cursor:pointer;">Cancel</p>
+    </div>
 </div>
 
 <script>
     const firebaseConfig = { databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    
-    function login() {
-        const phone = document.getElementById('ph').value;
-        const pass = document.getElementById('ps').value;
-        if(!phone || !pass) return alert("Fill all details!");
 
-        firebase.database().ref('users').orderByChild('phone').equalTo(phone).once('value', (snap) => {
+    let currentMode = 'phone';
+
+    function switchTab(mode, el) {
+        currentMode = mode;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        
+        const label = document.getElementById('inputLabel');
+        const country = document.getElementById('countryPart');
+        const input = document.getElementById('userInput');
+
+        if(mode === 'email') {
+            label.innerHTML = '<i class="far fa-envelope"></i> Email';
+            country.style.display = 'none';
+            input.placeholder = 'Please enter your email';
+            input.type = 'email';
+        } else {
+            label.innerHTML = '<i class="fas fa-mobile-alt"></i> Phone number';
+            country.style.display = 'flex';
+            input.placeholder = 'Please enter your phone number';
+            input.type = 'number';
+        }
+    }
+
+    function togglePassword(inputId, icon) {
+        const ps = document.getElementById(inputId);
+        if (ps.type === "password") {
+            ps.type = "text";
+            icon.a = "far fa-eye";
+        } else {
+            ps.type = "password";
+            icon.className = "far fa-eye-slash";
+        }
+    }
+
+    function login() {
+        const userVal = document.getElementById('userInput').value;
+        const pass = document.getElementById('ps').value;
+
+        if(!userVal || !pass) return alert("Enter all details!");
+
+        const searchField = currentMode === 'phone' ? 'phone' : 'email';
+
+        firebase.database().ref('users').orderByChild(searchField).equalTo(userVal).once('value', (snap) => {
             if(snap.exists()) {
                 const userId = Object.keys(snap.val())[0];
                 const userData = snap.val()[userId];
                 if(userData.password === pass) {
-                    // Yahan se alert("Welcome!") hata diya gaya hai
                     localStorage.setItem('jalwa_id', userId);
                     window.location.href = "index.html"; 
-                } else { 
-                    alert("Wrong Password!"); 
-                }
-            } else { 
-                alert("User Not Found!"); 
-            }
+                } else { alert("Wrong Password!"); }
+            } else { alert("User not registered!"); }
         });
+    }
+
+    function openForget() {
+        document.getElementById('forgetModal').style.display = 'flex';
+    }
+
+    async function resetPassword() {
+        const userVal = document.getElementById('resetUser').value;
+        const newPass = document.getElementById('resetNewPass').value;
+
+        if(!userVal || !newPass) return alert("Fill all details!");
+
+        // Search in both phone and email for resetting
+        const dbRef = firebase.database().ref('users');
+        
+        // Search by phone
+        let snap = await dbRef.orderByChild('phone').equalTo(userVal).once('value');
+        
+        // If not found by phone, search by email
+        if(!snap.exists()) {
+            snap = await dbRef.orderByChild('email').equalTo(userVal).once('value');
+        }
+
+        if(snap.exists()) {
+            const userId = Object.keys(snap.val())[0];
+            await dbRef.child(userId).update({ password: newPass });
+            alert("Password updated successfully! Now Login.");
+            document.getElementById('forgetModal').style.display = 'none';
+        } else {
+            alert("Account not found!");
+        }
     }
 </script>
 </body>
 </html>
-
