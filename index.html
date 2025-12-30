@@ -48,6 +48,12 @@
         .notice-box { background: #10142d; width: 100%; max-width: 350px; border-radius: 20px; border: 2px solid var(--cyan); text-align: center; overflow: hidden; }
         .notice-header { background: var(--cyan); color: #000; padding: 12px; font-weight: bold; }
         .notice-body { padding: 20px; font-size: 14px; line-height: 1.5; color: #fff; }
+
+        /* SLIDER CSS - NYA ADD KIYA HAI */
+        .slider-box { margin: 15px; border-radius: 15px; overflow: hidden; border: 1px solid #1f2855; height: 160px; display: none; background: #000; position: relative; }
+        .slider-wrapper { display: flex; transition: transform 0.5s ease-in-out; height: 100%; }
+        .slide { min-width: 100%; height: 100%; }
+        .slide img { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body>
@@ -88,6 +94,11 @@
                 <i class="fas fa-wallet" style="color:var(--gold)"></i> <span class="user-bal-text">₹0.00</span>
             </div>
         </div>
+
+        <div id="slider-main" class="slider-box">
+            <div class="slider-wrapper" id="slider-wrapper"></div>
+        </div>
+
         <div class="card" style="background:var(--blue-gradient); border:none; text-align: center;">
             <h3 style="margin-bottom:5px;">Win Real Cash</h3>
             <p style="font-size:12px; opacity:0.8;">Trusted by 10k+ Players</p>
@@ -179,17 +190,48 @@
 
     let userPhone = localStorage.getItem('jalwa_user_phone') || localStorage.getItem('jalwa_id');
     let userBalance = 0;
+    let sliderTimer;
 
-    // POPUP LISTENER
-    db.ref('appControl/popup').on('value', snap => {
+    // POPUP & SLIDER LISTENER - NYA ADD KIYA HAI
+    db.ref('appControl').on('value', snap => {
         const data = snap.val();
-        if(data && data.status === 'on') {
-            document.getElementById('notice-msg').innerHTML = data.msg;
+        if(!data) return;
+
+        // Popup Logic
+        if(data.popup && data.popup.status === 'on') {
+            document.getElementById('notice-msg').innerHTML = data.popup.msg;
             document.getElementById('global-notice').style.display = 'flex';
         } else {
             document.getElementById('global-notice').style.display = 'none';
         }
+
+        // Slider Logic
+        const sliderMain = document.getElementById('slider-main');
+        const wrapper = document.getElementById('slider-wrapper');
+        if(data.slider && data.slider.status === 'on' && data.slider.images) {
+            sliderMain.style.display = 'block';
+            let html = "";
+            data.slider.images.forEach(img => {
+                html += `<div class="slide"><img src="${img}"></div>`;
+            });
+            wrapper.innerHTML = html;
+            startSliderAnimation();
+        } else {
+            sliderMain.style.display = 'none';
+        }
     });
+
+    function startSliderAnimation() {
+        if(sliderTimer) clearInterval(sliderTimer);
+        const wrapper = document.getElementById('slider-wrapper');
+        let idx = 0;
+        sliderTimer = setInterval(() => {
+            const slides = document.querySelectorAll('.slide');
+            if(slides.length < 2) return;
+            idx = (idx + 1) % slides.length;
+            wrapper.style.transform = `translateX(-${idx * 100}%)`;
+        }, 3000);
+    }
 
     window.onload = function() {
         if(userPhone) {
@@ -199,7 +241,6 @@
         }
     }
 
-    // ... (Baki ka handlesAuth, initApp functions same hain) ...
     function initApp() {
         document.getElementById('refLink').innerText = "https://jalwa-v7.vercel.app/?ref=" + userPhone;
         db.ref('users/' + userPhone).on('value', snap => {
