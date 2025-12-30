@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Jalwa Pro Dashboard</title>
+    <title>Jalwa Pro - Official</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
         :root { 
             --bg-dark: #06091b; --card-bg: #10142d; --cyan: #00ffca; 
@@ -21,37 +22,27 @@
         
         #auth-screen { padding: 40px 20px; text-align: center; }
         .auth-toggle { display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; }
-        .auth-toggle span { cursor: pointer; color: var(--text-gray); font-weight: bold; padding-bottom: 5px; }
+        .auth-toggle span { cursor: pointer; color: var(--text-gray); font-weight: bold; padding-bottom: 5px; font-size: 14px; }
         .auth-toggle span.active { color: var(--cyan); border-bottom: 2px solid var(--cyan); }
 
         .top-bar { padding: 15px; display: flex; align-items: center; background: #10142d; border-bottom: 1px solid #1f2855; justify-content: space-between; position: sticky; top:0; z-index: 100; }
         .card { background: var(--card-bg); border-radius: 15px; padding: 15px; border: 1px solid #1f2855; margin: 15px; }
-        .btn-main { width: 100%; background: var(--cyan); color: #000; border: none; padding: 14px; border-radius: 12px; font-weight: 900; cursor: pointer; margin-top: 10px; text-transform: uppercase; transition: 0.2s; }
-        .btn-main:active { transform: scale(0.95); }
+        .btn-main { width: 100%; background: var(--cyan); color: #000; border: none; padding: 14px; border-radius: 12px; font-weight: 900; cursor: pointer; margin-top: 10px; text-transform: uppercase; transition: 0.2s; font-size: 14px; }
         
-        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #1f2855; background: #06091b; color: white; box-sizing: border-box; }
+        input { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 10px; border: 1px solid #1f2855; background: #06091b; color: white; box-sizing: border-box; font-size: 15px; }
         
-        .task-box { background: #161d3d; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #1f2855; }
-        .mission-btn { background: var(--cyan); color: #000; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px; }
-        .mission-btn.claimed { background: #333 !important; color: #777 !important; cursor: not-allowed; }
+        .hist-card { background: #0d122b; border-radius: 10px; padding: 12px; margin-bottom: 10px; border-left: 4px solid var(--cyan); font-size: 12px; position: relative; }
+        .hist-flex { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .status-pending { color: var(--gold); }
+        .status-approved { color: var(--green); }
+        .status-rejected { color: var(--red); }
 
-        .ref-box { background: rgba(0, 255, 202, 0.1); padding: 12px; border-radius: 10px; border: 1px dashed var(--cyan); margin-top: 10px; font-size: 12px; word-break: break-all; color: var(--cyan); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-
-        .history-tabs { display: flex; gap: 10px; margin: 15px; }
-        .tab-btn { flex: 1; padding: 10px; background: #161d3d; border: 1px solid #1f2855; color: white; border-radius: 8px; cursor: pointer; font-size: 12px; }
-        .tab-btn.active { background: var(--cyan); color: black; border: none; font-weight: bold; }
-        
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 15px; }
-        .stat-box { background: #161d3d; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #1f2855; }
-
-        .history-item { display: flex; justify-content: space-between; padding: 12px; background: #0c1026; border-radius: 8px; margin-bottom: 8px; font-size: 13px; }
-        
         .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: #10142d; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #1f2855; z-index: 1000; }
-        .nav-item { text-align: center; color: var(--text-gray); font-size: 11px; cursor: pointer; }
+        .nav-item { text-align: center; color: var(--text-gray); font-size: 11px; cursor: pointer; flex: 1; }
         .nav-item.active { color: var(--cyan); }
         .nav-item i { font-size: 20px; display: block; margin-bottom: 4px; }
         
-        #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--cyan); color: black; padding: 10px 25px; border-radius: 20px; display: none; z-index: 5000; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--cyan); color: black; padding: 10px 25px; border-radius: 20px; display: none; z-index: 5000; font-weight: bold; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -59,7 +50,7 @@
 <div id="toast">Message</div>
 
 <div id="auth-screen">
-    <h1 style="color:var(--cyan); letter-spacing: 5px;">JALWA PRO</h1>
+    <h1 style="color:var(--cyan); letter-spacing: 5px; margin-bottom: 5px;">JALWA PRO</h1>
     <div class="auth-toggle">
         <span id="tab-reg" class="active" onclick="toggleAuth('reg')">REGISTER</span>
         <span id="tab-login" onclick="toggleAuth('login')">LOGIN</span>
@@ -68,7 +59,7 @@
         <input type="number" id="authPhone" placeholder="Mobile Number">
         <input type="password" id="authPass" placeholder="Password">
         <div id="inviteBox">
-            <input type="text" id="authRef" placeholder="Invite Code (Optional)">
+            <input type="text" id="authRef" placeholder="Invite Code (Auto-filled)">
         </div>
         <button class="btn-main" id="authBtn" onclick="handleAuth()">Create Account</button>
     </div>
@@ -77,104 +68,93 @@
 <div class="app-container" id="mainDashboard">
     <div id="home" class="page active">
         <div class="top-bar">
-            <div style="font-size:20px; font-weight:900; color:var(--cyan);">JALWA PRO</div>
-            <div style="background: #161d3d; padding: 5px 15px; border-radius: 20px; border: 1px solid var(--cyan);">
+            <div style="font-size:18px; font-weight:900; color:var(--cyan);">JALWA PRO</div>
+            <div style="background: #161d3d; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--cyan);">
                 <i class="fas fa-wallet" style="color:var(--gold)"></i> <span class="user-bal-text">₹0.00</span>
             </div>
         </div>
-        <div class="card" style="background:var(--blue-gradient); border:none;">
-            <h3>Welcome to Jalwa Pro</h3>
-            <p style="font-size:12px; opacity:0.8;">Play WinGo & Aviator to win real cash daily!</p>
+        <div class="card" style="background:var(--blue-gradient); border:none; text-align: center;">
+            <h3 style="margin-bottom:5px;">Win Real Cash</h3>
+            <p style="font-size:12px; opacity:0.8;">Trusted by 10k+ Players</p>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 15px;">
             <div class="card" style="margin:0; text-align:center; border-color:var(--cyan)" onclick="location.href='game.html'">
-                <i class="fas fa-dice" style="font-size:40px; color:var(--cyan)"></i><br><br><b>WinGo 30s</b>
+                <i class="fas fa-dice" style="font-size:35px; color:var(--cyan)"></i><br><br><b>WinGo 30s</b>
             </div>
             <div class="card" style="margin:0; text-align:center; border-color:var(--red)" onclick="location.href='aviator.html'">
-                <i class="fas fa-paper-plane" style="font-size:40px; color:var(--red)"></i><br><br><b>Aviator Pro</b>
+                <i class="fas fa-paper-plane" style="font-size:35px; color:var(--red)"></i><br><br><b>Aviator Pro</b>
             </div>
         </div>
     </div>
 
     <div id="activity" class="page">
-        <div class="top-bar"><b>Rewards & Refer</b></div>
-        <div class="card" style="background:var(--blue-gradient)">
-            <h4 style="margin:0;">Refer & Earn ₹200</h4>
-            <p style="font-size:11px; opacity:0.8;">Get ₹200 bonus when your friend recharges ₹500 or more!</p>
-            <div class="ref-box" onclick="copyRef()">
-                <span id="refLink">jalwa-v7.vercel.app?ref=...</span>
-                <i class="fas fa-copy"></i>
+        <div class="top-bar"><b>Activity & Rewards</b></div>
+        <div class="card" style="background:var(--blue-gradient); border: 2px solid var(--cyan);">
+            <h2 style="margin:0; color: var(--cyan);">₹200 BONUS</h2>
+            <p style="font-size:13px; margin: 10px 0; font-weight: bold;">Get ₹200 on every Referral Recharge of ₹500!</p>
+            <div style="background: rgba(0,0,255,0.2); padding: 12px; border: 1px dashed var(--cyan); border-radius: 8px; font-size: 11px; display:flex; justify-content:space-between; align-items:center;" onclick="copyRef()">
+                <span id="refLink">Loading Link...</span> <i class="fas fa-copy"></i>
             </div>
         </div>
         <div class="card">
-            <div class="task-box">
-                <div><b>Daily Login</b><br><small>Get ₹20.00 free daily</small></div>
-                <button class="mission-btn" id="dailyBtn" onclick="claimDaily()">CLAIM</button>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div><b>Daily Reward</b><br><small>Claim ₹20.00 daily</small></div>
+                <button class="btn-main" style="width:auto; padding:8px 15px; font-size:11px; margin:0;" id="dailyBtn" onclick="claimDaily()">CLAIM NOW</button>
             </div>
-            <h4 style="margin: 20px 0 10px 0;">Recharge Bonus</h4>
-            <div class="task-box">
-                <div><b>Recharge ₹500</b><br><small>Extra Bonus: ₹20.00</small></div>
-                <button class="mission-btn" id="m1Btn" onclick="claimMission(1, 20, 500)">CLAIM</button>
-            </div>
-            <div class="task-box">
-                <div><b>Recharge ₹1000</b><br><small>Extra Bonus: ₹50.00</small></div>
-                <button class="mission-btn" id="m2Btn" onclick="claimMission(2, 50, 1000)">CLAIM</button>
-            </div>
+        </div>
+    </div>
+
+    <div id="history" class="page">
+        <div class="top-bar"><b>Full History</b></div>
+        <div style="padding: 10px 15px;">
+            <input type="number" id="searchHist" placeholder="Search by Mobile Number" oninput="filterHistory()" style="margin-bottom: 15px; border-color: var(--cyan);">
+            
+            <h5 style="color:var(--cyan); border-bottom: 1px solid #1f2855; padding-bottom:5px;">Deposit Records</h5>
+            <div id="fullDepHistory"></div>
+            
+            <h5 style="color:var(--red); border-bottom: 1px solid #1f2855; padding-bottom:5px; margin-top:20px;">Withdrawal Records</h5>
+            <div id="fullWitHistory"></div>
         </div>
     </div>
 
     <div id="wallet" class="page">
-        <div class="top-bar"><b>My Wallet</b></div>
-        <div style="text-align:center; padding:20px;">
+        <div class="top-bar"><b>Wallet</b></div>
+        <div style="text-align:center; padding:35px 20px;">
             <p style="color:var(--text-gray); margin:0;">Total Balance</p>
-            <h1 class="user-bal-text" style="color:var(--cyan); font-size:40px; margin:10px 0;">₹0.00</h1>
+            <h1 class="user-bal-text" style="color:var(--cyan); font-size:45px; margin:10px 0;">₹0.00</h1>
         </div>
-        <div class="stat-grid">
-            <div class="stat-box">
-                <small style="color:var(--text-gray)">Total Deposit</small>
-                <div id="totalDepText" style="color:var(--green); font-weight:bold;">₹0</div>
-            </div>
-            <div class="stat-box">
-                <small style="color:var(--text-gray)">Total Withdraw</small>
-                <div id="totalWitText" style="color:var(--red); font-weight:bold;">₹0</div>
-            </div>
-        </div>
-        <div style="display:flex; gap:10px; padding:15px;">
+        <div style="display:flex; gap:12px; padding:0 20px;">
             <button class="btn-main" onclick="showPage('deposit_page')">DEPOSIT</button>
-            <button class="btn-main" style="background:white" onclick="showPage('withdraw_page')">WITHDRAW</button>
+            <button class="btn-main" style="background:white; color:black;" onclick="showPage('withdraw_page')">WITHDRAW</button>
         </div>
-        <div class="history-tabs">
-            <button class="tab-btn active" id="btn-dep-hist" onclick="toggleHistory('dep')">Deposit History</button>
-            <button class="tab-btn" id="btn-wit-hist" onclick="toggleHistory('wit')">Withdraw History</button>
-        </div>
-        <div id="history-container" style="padding: 0 15px;"></div>
     </div>
 
     <div id="deposit_page" class="page">
-        <div class="top-bar"><i class="fas fa-arrow-left" onclick="showPage('wallet')"></i> <b>Deposit</b></div>
+        <div class="top-bar"><i class="fas fa-arrow-left" onclick="showPage('wallet')"></i> <b>Recharge</b></div>
         <div class="card">
-            <p>Admin UPI: <b id="adminUPI">d28122004@ptyes</b> <i class="fas fa-copy" onclick="copyUPI()"></i></p>
-            <input type="number" id="depAmt" placeholder="Amount (Min 500)">
+            <p style="font-size:13px;">Copy UPI and Pay:</p>
+            <div style="background:#06091b; padding:15px; border-radius:10px; margin-bottom:15px; display:flex; justify-content:space-between; border: 1px solid var(--cyan);">
+                <b>d28122004@ptyes</b> <i class="fas fa-copy" onclick="copyUPI()"></i>
+            </div>
+            <input type="number" id="depAmt" placeholder="Amount (Min ₹500)">
             <input type="text" id="depUTR" placeholder="12 Digit UTR Number">
-            <button class="btn-main" onclick="submitDeposit()">Submit Payment</button>
+            <button class="btn-main" onclick="submitDeposit()">Submit Recharge</button>
         </div>
     </div>
 
     <div id="withdraw_page" class="page">
         <div class="top-bar"><i class="fas fa-arrow-left" onclick="showPage('wallet')"></i> <b>Withdrawal</b></div>
         <div class="card">
-            <input type="number" id="witAmt" placeholder="Amount (Min 550)">
-            <input type="text" id="witBank" placeholder="Bank Name">
-            <input type="text" id="witAcc" placeholder="Account Number">
-            <input type="text" id="witIFSC" placeholder="IFSC Code">
-            <input type="text" id="witUPI" placeholder="UPI ID">
-            <button class="btn-main" onclick="submitWithdraw()">Withdraw Now</button>
+            <input type="number" id="witAmt" placeholder="Amount (Min ₹550)">
+            <input type="text" id="witUPI" placeholder="Your UPI ID (e.g. 89555... @paytm)">
+            <button class="btn-main" onclick="submitWithdraw()">Request Withdrawal</button>
         </div>
     </div>
 
     <div class="bottom-nav">
         <div class="nav-item active" onclick="showPage('home', this)"><i class="fas fa-home"></i>Home</div>
         <div class="nav-item" onclick="showPage('activity', this)"><i class="fas fa-gift"></i>Activity</div>
+        <div class="nav-item" onclick="showPage('history', this)"><i class="fas fa-history"></i>History</div>
         <div class="nav-item" onclick="showPage('wallet', this)"><i class="fas fa-wallet"></i>Wallet</div>
         <div class="nav-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i>Logout</div>
     </div>
@@ -187,151 +167,133 @@
 
     let userPhone = localStorage.getItem('jalwa_user_phone');
     let userBalance = 0;
-    let totalDep = 0;
-    let currentAuthMode = 'reg';
 
     window.onload = function() {
         const urlParams = new URLSearchParams(window.location.search);
         const refCode = urlParams.get('ref');
-        if (refCode) document.getElementById('authRef').value = refCode;
+        if (refCode) localStorage.setItem('sticky_ref', refCode);
         
+        const savedRef = localStorage.getItem('sticky_ref');
+        if (savedRef && document.getElementById('authRef')) document.getElementById('authRef').value = savedRef;
+
         if(userPhone) {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('mainDashboard').style.display = 'block';
             initApp();
+            loadHistory();
         }
     }
 
     function initApp() {
-        document.getElementById('refLink').innerText = "https://jalwa-v7.vercel.app?ref=" + userPhone;
-
+        document.getElementById('refLink').innerText = "https://jalwa-v7.vercel.app/?ref=" + userPhone;
         db.ref('users/' + userPhone).on('value', snap => {
             const d = snap.val();
             if(d) {
                 userBalance = d.balance || 0;
-                totalDep = Number(d.totalDeposit || 0);
-                document.querySelectorAll('.user-bal-text').forEach(el => el.innerText = "₹" + userBalance.toFixed(2));
-                document.getElementById('totalDepText').innerText = "₹" + totalDep;
-                document.getElementById('totalWitText').innerText = "₹" + (d.totalWithdraw || 0);
-                updateMissionUI(d);
+                document.querySelectorAll('.user-bal-text').forEach(el => el.innerText = "₹" + Number(userBalance).toFixed(2));
             }
         });
-        loadHistory('dep');
-    }
-
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.innerText = msg; t.style.display = 'block';
-        setTimeout(() => { t.style.display = 'none'; }, 2000);
-    }
-
-    function toggleAuth(mode) {
-        currentAuthMode = mode;
-        document.getElementById('tab-reg').className = mode === 'reg' ? 'active' : '';
-        document.getElementById('tab-login').className = mode === 'login' ? 'active' : '';
-        document.getElementById('authBtn').innerText = mode === 'reg' ? 'Create Account' : 'Login Now';
-        document.getElementById('inviteBox').style.display = mode === 'reg' ? 'block' : 'none';
     }
 
     async function handleAuth() {
-        const ph = document.getElementById('authPhone').value;
-        const ps = document.getElementById('authPass').value;
-        const ref = document.getElementById('authRef').value;
-        if(ph.length < 10) return showToast("Invalid Phone!");
+        const ph = document.getElementById('authPhone').value.trim();
+        const ps = document.getElementById('authPass').value.trim();
+        const ref = document.getElementById('authRef').value.trim() || "none";
+        if(ph.length < 10 || ps === "") return showToast("Enter Details!");
         
         const snap = await db.ref('users/' + ph).once('value');
-        if(currentAuthMode === 'reg') {
-            if(snap.exists()) return showToast("User exists! Please Login.");
-            await db.ref('users/' + ph).set({ 
-                password: ps, balance: 0, totalDeposit: 0, totalWithdraw: 0, 
-                lastCheckin: "", invitedBy: ref || "none", missions: [] 
-            });
+        if(document.getElementById('tab-reg').classList.contains('active')) {
+            if(snap.exists()) return showToast("Already exists!");
+            await db.ref('users/' + ph).set({ password: ps, balance: 0, totalDeposit: 0, invitedBy: ref, lastCheckin: "" });
         } else {
-            if(!snap.exists() || snap.val().password !== ps) return showToast("Wrong ID/Password!");
+            if(!snap.exists() || snap.val().password !== ps) return showToast("Wrong Details!");
         }
         localStorage.setItem('jalwa_user_phone', ph);
-        localStorage.setItem('jalwa_id', ph); 
         location.reload();
     }
 
-    function updateMissionUI(d) {
-        const today = new Date().toDateString();
-        const dailyBtn = document.getElementById('dailyBtn');
-        if(d.lastCheckin === today) { dailyBtn.innerText = "CLAIMED"; dailyBtn.classList.add('claimed'); dailyBtn.disabled = true; }
-        
-        const missions = d.missions || [];
-        // Fixed: Check totalDep properly
-        const m1Btn = document.getElementById('m1Btn');
-        if(missions.includes(1)) { m1Btn.innerText = "CLAIMED"; m1Btn.classList.add('claimed'); m1Btn.disabled = true; }
-        
-        const m2Btn = document.getElementById('m2Btn');
-        if(missions.includes(2)) { m2Btn.innerText = "CLAIMED"; m2Btn.classList.add('claimed'); m2Btn.disabled = true; }
-    }
-
-    async function claimDaily() {
-        const today = new Date().toDateString();
-        await db.ref('users/' + userPhone).update({ balance: userBalance + 20, lastCheckin: today });
-        showToast("₹20 Daily Bonus Added!");
-    }
-
-    async function claimMission(id, bonus, req) {
-        if(totalDep < req) { showToast("Need total deposit ₹" + req); return; }
-        const snap = await db.ref('users/' + userPhone + '/missions').once('value');
-        let missions = snap.val() || [];
-        if(missions.includes(id)) return;
-        missions.push(id);
-        await db.ref('users/' + userPhone).update({ balance: userBalance + bonus, missions: missions });
-        showToast("Bonus ₹" + bonus + " Claimed!");
-    }
-
-    function toggleHistory(type) {
-        document.getElementById('btn-dep-hist').className = type === 'dep' ? 'tab-btn active' : 'tab-btn';
-        document.getElementById('btn-wit-hist').className = type === 'wit' ? 'tab-btn active' : 'tab-btn';
-        loadHistory(type);
-    }
-
-    function loadHistory(type) {
-        const path = type === 'dep' ? 'requests/deposits' : 'requests/withdrawals';
-        db.ref(path).orderByChild('uid').equalTo(userPhone).limitToLast(10).on('value', snap => {
-            let h = "";
-            const data = snap.val();
-            if(!data) { document.getElementById('history-container').innerHTML = "No history"; return; }
-            Object.values(data).reverse().forEach(item => {
-                h += `<div class="history-item"><span>${type.toUpperCase()} ₹${item.amount}</span><span style="color:${item.status==='success'?'var(--green)':'var(--gold)'}">${item.status.toUpperCase()}</span></div>`;
+    function loadHistory() {
+        // Deposits
+        db.ref('requests/deposits').orderByChild('uid').equalTo(userPhone).on('value', snap => {
+            const list = document.getElementById('fullDepHistory'); list.innerHTML = "";
+            snap.forEach(i => {
+                const v = i.val();
+                const date = new Date(v.time).toLocaleString();
+                list.innerHTML += `<div class="hist-card" data-phone="${v.uid}">
+                    <div class="hist-flex"><b>₹${v.amount}</b><span class="status-${v.status}">${v.status.toUpperCase()}</span></div>
+                    <div style="font-size:10px; opacity:0.6;">UTR: ${v.utr} | ${date}</div>
+                </div>`;
             });
-            document.getElementById('history-container').innerHTML = h || "No history";
+        });
+        // Withdrawals
+        db.ref('requests/withdrawals').orderByChild('uid').equalTo(userPhone).on('value', snap => {
+            const list = document.getElementById('fullWitHistory'); list.innerHTML = "";
+            snap.forEach(i => {
+                const v = i.val();
+                const date = new Date(v.time).toLocaleString();
+                list.innerHTML += `<div class="hist-card" style="border-left-color:var(--red)" data-phone="${v.uid}">
+                    <div class="hist-flex"><b>₹${v.amount}</b><span class="status-${v.status}">${v.status.toUpperCase()}</span></div>
+                    <div style="font-size:10px; opacity:0.6;">UPI: ${v.upi} | ${date}</div>
+                </div>`;
+            });
         });
     }
 
-    function submitDeposit() {
-        const amt = Number(document.getElementById('depAmt').value);
-        if(amt < 500) return showToast("Min 500 required");
-        db.ref('requests/deposits').push({ uid: userPhone, amount: amt, utr: document.getElementById('depUTR').value, status: 'pending', time: Date.now() });
-        showToast("Request Sent!");
-        showPage('wallet');
-    }
-
-    function submitWithdraw() {
-        const amt = Number(document.getElementById('witAmt').value);
-        if(amt < 550 || amt > userBalance) return showToast("Check Balance/Min Limit");
-        db.ref('requests/withdrawals').push({ uid: userPhone, amount: amt, status: 'pending', time: Date.now(), bank: document.getElementById('witBank').value, acc: document.getElementById('witAcc').value });
-        db.ref('users/' + userPhone).update({ balance: userBalance - amt });
-        showToast("Withdrawal Requested!");
-        showPage('wallet');
+    function filterHistory() {
+        const val = document.getElementById('searchHist').value;
+        document.querySelectorAll('.hist-card').forEach(card => {
+            card.style.display = card.dataset.phone.includes(val) ? 'block' : 'none';
+        });
     }
 
     function showPage(pId, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        const target = document.getElementById(pId);
-        if(target) target.classList.add('active');
+        document.getElementById(pId).classList.add('active');
         if(el) {
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             el.classList.add('active');
         }
     }
-    function copyRef() { navigator.clipboard.writeText(document.getElementById('refLink').innerText); showToast("Link Copied!"); }
-    function copyUPI() { navigator.clipboard.writeText("d28122004@ptyes"); showToast("UPI Copied!"); }
+
+    function toggleAuth(m) {
+        document.getElementById('tab-reg').className = (m === 'reg' ? 'active' : '');
+        document.getElementById('tab-login').className = (m === 'login' ? 'active' : '');
+        document.getElementById('inviteBox').style.display = (m === 'reg' ? 'block' : 'none');
+    }
+
+    function showToast(m) {
+        const t = document.getElementById('toast'); t.innerText = m;
+        t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2500);
+    }
+
     function logout() { localStorage.clear(); location.reload(); }
+    function copyUPI() { navigator.clipboard.writeText("d28122004@ptyes"); showToast("UPI Copied!"); }
+    function copyRef() { navigator.clipboard.writeText(document.getElementById('refLink').innerText); showToast("Link Copied!"); }
+
+    function submitDeposit() {
+        const amt = Number(document.getElementById('depAmt').value);
+        const utr = document.getElementById('depUTR').value.trim();
+        if(amt < 500 || utr.length < 10) return showToast("Check Amount/UTR!");
+        db.ref('requests/deposits').push({ uid: userPhone, amount: amt, utr: utr, status: 'pending', time: Date.now() });
+        showToast("Request Sent!"); showPage('history');
+    }
+
+    function submitWithdraw() {
+        const amt = Number(document.getElementById('witAmt').value);
+        const upi = document.getElementById('witUPI').value.trim();
+        if(amt < 550 || amt > userBalance || upi === "") return showToast("Check Balance/UPI!");
+        db.ref('requests/withdrawals').push({ uid: userPhone, amount: amt, upi: upi, status: 'pending', time: Date.now() });
+        db.ref('users/' + userPhone).update({ balance: userBalance - amt });
+        showToast("Withdrawal Requested!"); showPage('history');
+    }
+
+    async function claimDaily() {
+        const today = new Date().toDateString();
+        const snap = await db.ref('users/' + userPhone + '/lastCheckin').once('value');
+        if(snap.val() === today) return showToast("Already claimed today!");
+        await db.ref('users/' + userPhone).update({ balance: userBalance + 20, lastCheckin: today });
+        showToast("₹20 Bonus Added!");
+    }
 </script>
 </body>
 </html>
