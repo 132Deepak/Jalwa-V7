@@ -2,158 +2,168 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jalwa Pro - Wallet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jalwa Pro Wallet</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        :root { --blue: #3b82f6; --green: #22c55e; --red: #ef4444; --orange: #f59e0b; }
-        body { font-family: 'Segoe UI', sans-serif; background: #0d131f; color: white; margin: 0; padding: 15px; }
-        .card { background: #1f293a; padding: 20px; border-radius: 15px; max-width: 450px; margin: auto; border: 1px solid #2d3a4f; }
-        .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; background: #0d131f; padding: 5px; border-radius: 10px; }
-        .tab { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; color: #888; background: none; font-weight: bold; }
-        .tab.active { background: var(--blue); color: white; }
-        .upi-box { background: rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 10px; border: 2px dashed var(--blue); text-align: center; margin: 15px 0; }
-        input { width: 100%; padding: 12px; margin-top: 5px; background: #0d131f; border: 1px solid #2d3a4f; border-radius: 8px; color: white; box-sizing: border-box; }
-        .btn-action { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: white; margin-top: 15px; }
-        .hist-item { display: flex; justify-content: space-between; padding: 12px; background: #0d131f; border-radius: 10px; margin-bottom: 8px; font-size: 14px; }
-        .status-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
-        .pending { background: #fef3c7; color: #92400e; }
-        .success { background: #dcfce7; color: #166534; }
-        .rejected { background: #fee2e2; color: #991b1b; }
+        :root { 
+            --bg-dark: #06091b; 
+            --card-bg: #10142d; 
+            --cyan: #00ffca; 
+            --text-gray: #7e87a8;
+            --gradient-main: linear-gradient(135deg, #2af598 0%, #009efd 100%);
+        }
+
+        body { 
+            margin: 0; background: var(--bg-dark); 
+            font-family: 'Segoe UI', Roboto, sans-serif; color: white; 
+        }
+
+        .app-container { width: 100%; max-width: 480px; margin: auto; min-height: 100vh; padding-bottom: 80px; }
+
+        /* --- WALLET HEADER --- */
+        .wallet-header {
+            padding: 30px 20px; text-align: center;
+            background: linear-gradient(180deg, #161d3d 0%, var(--bg-dark) 100%);
+        }
+        .total-balance-box i { font-size: 24px; color: var(--cyan); margin-bottom: 10px; }
+        .balance-amount { font-size: 36px; font-weight: bold; margin: 5px 0; }
+        .balance-label { color: var(--text-gray); font-size: 14px; letter-spacing: 1px; }
+
+        /* --- STATS CARDS (Deposit/Withdrawal Summary) --- */
+        .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 15px; margin-top: -20px; }
+        .stat-card {
+            background: var(--card-bg); padding: 15px; border-radius: 20px;
+            border: 1px solid #1f2855; text-align: center;
+        }
+        .stat-card span { display: block; font-size: 12px; color: var(--text-gray); margin-bottom: 5px; }
+        .stat-card b { font-size: 18px; color: #fff; }
+
+        /* --- MAIN ACTION BUTTON --- */
+        .action-container { padding: 20px 15px; }
+        .main-btn {
+            width: 100%; background: var(--gradient-main); color: #000;
+            border: none; padding: 15px; border-radius: 50px;
+            font-size: 16px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,255,202,0.2);
+        }
+
+        /* --- GRID MENU (Icons like screenshot) --- */
+        .wallet-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+            padding: 15px; margin-top: 10px;
+        }
+        .grid-item { text-align: center; cursor: pointer; }
+        .icon-box {
+            width: 55px; height: 55px; margin: 0 auto 8px;
+            border-radius: 18px; display: flex; align-items: center; justify-content: center;
+            font-size: 22px; transition: 0.3s;
+        }
+        .grid-item span { font-size: 11px; color: var(--text-gray); font-weight: 500; }
+        
+        /* Icon Colors */
+        .bg-deposit { background: rgba(255, 193, 7, 0.15); color: #ffc107; }
+        .bg-withdraw { background: rgba(33, 150, 243, 0.15); color: #2196f3; }
+        .bg-d-hist { background: rgba(233, 30, 99, 0.15); color: #e91e63; }
+        .bg-w-hist { background: rgba(76, 175, 80, 0.15); color: #4caf50; }
+
+        .grid-item:active .icon-box { transform: scale(0.9); }
+
+        /* --- EXTRA INFO --- */
+        .extra-section { padding: 0 15px; display: flex; gap: 15px; margin-top: 10px; }
+        .mini-card {
+            flex: 1; background: var(--card-bg); padding: 20px; 
+            border-radius: 20px; border: 1px solid #1f2855; text-align: center;
+        }
+        .mini-card i { font-size: 20px; color: var(--text-gray); margin-bottom: 10px; opacity: 0.5; }
+
+        /* --- BOTTOM NAV --- */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: #10142d; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #1f2855; }
+        .nav-item { text-align: center; color: var(--text-gray); font-size: 11px; cursor: pointer; }
+        .nav-item i { font-size: 22px; margin-bottom: 4px; display: block; }
+        .nav-item.active { color: var(--cyan); }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="top-nav">
-        <a href="index.html" style="color:white; text-decoration:none;"><i class="fas fa-chevron-left"></i> Back</a>
-        <div style="font-weight:bold;">Wallet</div>
-    </div>
-    
-    <div style="text-align: center; margin-bottom: 20px;">
-        <div style="color: #888; font-size: 14px;">Available Balance</div>
-        <div style="font-size: 32px; font-weight: bold;">₹<span id="headerBal">0.00</span></div>
+<div class="app-container">
+    <div style="padding: 15px; display: flex; align-items: center; gap: 15px;">
+        <i class="fas fa-chevron-left" onclick="history.back()"></i>
+        <b style="font-size: 18px;">Wallet</b>
     </div>
 
-    <div class="tabs">
-        <button class="tab active" id="tab-dep" onclick="showTab('deposit')">Deposit</button>
-        <button class="tab" id="tab-wit" onclick="showTab('withdraw')">Withdraw</button>
-    </div>
-
-    <div id="depositSec">
-        <div class="upi-box">
-            <small>Transfer to UPI ID</small>
-            <div style="font-size: 16px; font-weight: bold; margin: 5px 0;" id="adminUpi">d28122004@ptyes</div>
-            <button id="copyBtn" onclick="copyUPI()" style="color:var(--blue); background:none; border:none; font-weight:bold; cursor:pointer;">COPY UPI</button>
+    <div class="wallet-header">
+        <div class="total-balance-box">
+            <i class="fas fa-wallet"></i>
+            <div class="balance-label">TOTAL BALANCE</div>
+            <div class="balance-amount">₹<span id="mainBalance">128549.68</span></div>
         </div>
-        <input type="number" id="depAmount" placeholder="Amount (Min ₹500)">
-        <input type="text" id="utrNumber" placeholder="12 Digit UTR Number">
-        <button class="btn-action" id="depBtn" style="background:var(--green);" onclick="submitDeposit()">SUBMIT DEPOSIT</button>
     </div>
 
-    <div id="withdrawSec" style="display:none;">
-        <input type="number" id="witAmount" placeholder="Amount (Min ₹500)">
-        <input type="text" id="witUpi" placeholder="Enter UPI ID (example@ybl)">
-        <button class="btn-action" id="witBtn" style="background:var(--blue);" onclick="submitWithdraw()">WITHDRAW NOW</button>
+    <div class="stats-row">
+        <div class="stat-card">
+            <span>Total Deposit</span>
+            <b>₹50,000.00</b>
+        </div>
+        <div class="stat-card">
+            <span>Total Withdrawal</span>
+            <b>₹25,000.00</b>
+        </div>
     </div>
 
-    <div style="margin-top: 30px;">
-        <h4 id="histTitle">Recent Deposits</h4>
-        <div id="histList"></div>
+    <div class="action-container">
+        <button class="main-btn" onclick="alert('Transferring to Main Wallet...')">Main wallet transfer</button>
+    </div>
+
+    <div class="wallet-grid">
+        <div class="grid-item" onclick="location.href='deposit.html'">
+            <div class="icon-box bg-deposit"><i class="fas fa-coins"></i></div>
+            <span>Deposit</span>
+        </div>
+        <div class="grid-item" onclick="location.href='withdraw.html'">
+            <div class="icon-box bg-withdraw"><i class="fas fa-university"></i></div>
+            <span>Withdraw</span>
+        </div>
+        <div class="grid-item" onclick="location.href='deposit-history.html'">
+            <div class="icon-box bg-d-hist"><i class="fas fa-receipt"></i></div>
+            <span>Deposit <br>history</span>
+        </div>
+        <div class="grid-item" onclick="location.href='withdraw-history.html'">
+            <div class="icon-box bg-w-hist"><i class="fas fa-history"></i></div>
+            <span>Withdraw <br>history</span>
+        </div>
+    </div>
+
+    <div class="extra-section">
+        <div class="mini-card">
+            <i class="fas fa-gamepad"></i>
+            <div style="font-size: 14px; font-weight: bold;">0.00</div>
+            <div style="font-size: 10px; color: var(--text-gray);">AR Game</div>
+        </div>
+        <div class="mini-card">
+            <i class="fas fa-dice"></i>
+            <div style="font-size: 14px; font-weight: bold;">0.00</div>
+            <div style="font-size: 10px; color: var(--text-gray);">Lottery</div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item" onclick="location.href='index.html'"><i class="fas fa-house"></i>Home</div>
+        <div class="nav-item"><i class="fas fa-gift"></i>Activity</div>
+        <div class="nav-item active"><i class="fas fa-wallet"></i>Wallet</div>
+        <div class="nav-item"><i class="fas fa-user"></i>Account</div>
     </div>
 </div>
 
 <script>
-    const firebaseConfig = { databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const userId = localStorage.getItem('jalwa_id');
-
-    db.ref('users/' + userId + '/balance').on('value', snap => {
-        document.getElementById('headerBal').innerText = (snap.val() || 0).toFixed(2);
+    // Smooth interaction for buttons
+    document.querySelectorAll('.grid-item').forEach(item => {
+        item.addEventListener('click', function() {
+            // Tum yahan koi bhi function add kar sakte ho
+            console.log("Navigating to: " + this.innerText);
+        });
     });
-
-    function showTab(type) {
-        document.getElementById('depositSec').style.display = type === 'deposit' ? 'block' : 'none';
-        document.getElementById('withdrawSec').style.display = type === 'withdraw' ? 'block' : 'none';
-        document.getElementById('tab-dep').classList.toggle('active', type === 'deposit');
-        document.getElementById('tab-wit').classList.toggle('active', type === 'withdraw');
-        document.getElementById('histTitle').innerText = type === 'deposit' ? 'Recent Deposits' : 'Recent Withdrawals';
-        loadHistory(type);
-    }
-
-    function loadHistory(type) {
-        const path = type === 'deposit' ? 'requests/deposits' : 'requests/withdrawals';
-        db.ref(path).orderByChild('uid').equalTo(userId).limitToLast(10).on('value', snap => {
-            let html = "";
-            snap.forEach(child => {
-                const data = child.val();
-                const statusClass = data.status || 'pending';
-                html += `<div class="hist-item">
-                    <div><b>₹${data.amount}</b><br><small>${new Date(data.time).toLocaleDateString()}</small></div>
-                    <div class="status-badge ${statusClass}">${statusClass.toUpperCase()}</div>
-                </div>`;
-            });
-            document.getElementById('histList').innerHTML = html || "No history found";
-        });
-    }
-
-    function copyUPI() {
-        const upi = document.getElementById('adminUpi').innerText;
-        const btn = document.getElementById('copyBtn');
-        navigator.clipboard.writeText(upi).then(() => {
-            btn.innerText = "COPIED!";
-            setTimeout(() => { btn.innerText = "COPY UPI"; }, 2000);
-        });
-    }
-
-    function submitDeposit() {
-        const amt = document.getElementById('depAmount').value;
-        const utr = document.getElementById('utrNumber').value;
-        const btn = document.getElementById('depBtn');
-        if(amt < 500 || utr.length < 10) return;
-        
-        db.ref('requests/deposits').push({ uid: userId, amount: Number(amt), utr: utr, status: 'pending', time: Date.now() })
-        .then(() => {
-            btn.innerText = "SENT SUCCESSFULLY!";
-            btn.disabled = true;
-            setTimeout(() => { 
-                btn.innerText = "SUBMIT DEPOSIT"; 
-                btn.disabled = false;
-                document.getElementById('depAmount').value = "";
-                document.getElementById('utrNumber').value = "";
-            }, 3000);
-        });
-    }
-
-    function submitWithdraw() {
-        const amt = Number(document.getElementById('witAmount').value);
-        const upi = document.getElementById('witUpi').value;
-        const btn = document.getElementById('witBtn');
-        if(amt < 500 || !upi) return;
-        
-        db.ref('users/' + userId + '/balance').transaction(bal => {
-            if(bal >= amt) return bal - amt;
-        }, (err, comm) => {
-            if(comm) {
-                db.ref('requests/withdrawals').push({ uid: userId, amount: amt, upi: upi, status: 'pending', time: Date.now() });
-                btn.innerText = "REQUESTED!";
-                btn.disabled = true;
-                setTimeout(() => { 
-                    btn.innerText = "WITHDRAW NOW"; 
-                    btn.disabled = false;
-                    document.getElementById('witAmount').value = "";
-                    document.getElementById('witUpi').value = "";
-                }, 3000);
-            }
-        });
-    }
-
-    loadHistory('deposit');
 </script>
+
 </body>
 </html>
-
