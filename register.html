@@ -1,4 +1,4 @@
-l<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,92 +8,158 @@ l<!DOCTYPE html>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        :root { --bg: #060a1e; --input: #161d3d; --cyan: #00ffca; --gray: #7e87a8; }
-        body { margin: 0; background: var(--bg); color: white; font-family: sans-serif; }
-        .header { padding: 15px; display: flex; align-items: center; justify-content: space-between; }
-        .logo { font-size: 24px; font-weight: bold; font-style: italic; }
+        :root { 
+            --bg: #060a1e; 
+            --input: #161d3d; 
+            --cyan: #00ffca; 
+            --gray: #7e87a8; 
+            --gold: #ffd700;
+            --gradient: linear-gradient(to right, #2af598, #009efd);
+        }
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; }
+        
+        .header { padding: 15px; display: flex; align-items: center; justify-content: space-between; background: #10142d; border-bottom: 1px solid #1f2855; }
+        .logo { font-size: 24px; font-weight: 900; letter-spacing: 2px; }
         .logo span { color: var(--cyan); text-shadow: 0 0 10px var(--cyan); }
-        .container { padding: 20px; }
-        .tab-title { text-align: center; color: var(--cyan); border-bottom: 2px solid var(--cyan); padding: 10px; margin-bottom: 30px; font-weight: bold; }
-        .input-group { margin-bottom: 15px; }
-        .label { display: flex; align-items: center; gap: 8px; font-size: 14px; margin-bottom: 8px; }
+        
+        .container { padding: 25px 20px; max-width: 480px; margin: auto; }
+        .tab-title { text-align: center; color: var(--cyan); border-bottom: 2px solid var(--cyan); padding: 10px; margin-bottom: 30px; font-weight: bold; font-size: 18px; }
+        
+        .input-group { margin-bottom: 20px; }
+        .label { display: flex; align-items: center; gap: 8px; font-size: 14px; margin-bottom: 10px; color: var(--gray); }
         .label i { color: var(--cyan); font-size: 18px; }
-        .input-box { display: flex; background: var(--input); border: 1px solid #1f2855; border-radius: 8px; align-items: center; }
-        input { width: 100%; padding: 14px; background: transparent; border: none; color: white; outline: none; }
-        .btn-reg { width: 100%; padding: 15px; margin-top: 30px; background: linear-gradient(to right, #2af598, #009efd); border: none; border-radius: 30px; color: #000; font-weight: bold; cursor: pointer; }
+        
+        .input-box { display: flex; background: var(--input); border: 1px solid #1f2855; border-radius: 12px; align-items: center; transition: 0.3s; }
+        .input-box:focus-within { border-color: var(--cyan); box-shadow: 0 0 10px rgba(0,255,202,0.2); }
+        
+        input { width: 100%; padding: 15px; background: transparent; border: none; color: white; outline: none; font-size: 15px; }
+        input::placeholder { color: #5a658a; }
+
+        .btn-reg { width: 100%; padding: 16px; margin-top: 20px; background: var(--gradient); border: none; border-radius: 30px; color: #000; font-weight: 900; font-size: 16px; cursor: pointer; text-transform: uppercase; box-shadow: 0 5px 15px rgba(0,158,253,0.3); }
+        .btn-reg:active { transform: scale(0.98); }
+
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--cyan); color: black; padding: 10px 20px; border-radius: 5px; display: none; z-index: 1000; font-weight: bold; }
     </style>
 </head>
 <body>
 
+<div id="toast" class="toast"></div>
+
 <div class="header">
-    <i class="fas fa-chevron-left" onclick="history.back()"></i>
-    <div class="logo">Jalwa<span>.Game</span></div>
-    <div></div>
+    <i class="fas fa-chevron-left" onclick="location.href='login.html'"></i>
+    <div class="logo">JALWA<span>.GAME</span></div>
+    <div style="width: 20px;"></div>
 </div>
 
 <div class="container">
-    <div class="tab-title"><i class="fas fa-mobile-alt"></i> Register your phone</div>
+    <div class="tab-title"><i class="fas fa-user-plus"></i> REGISTER ACCOUNT</div>
 
     <div class="input-group">
-        <div class="label"><i class="fas fa-mobile-alt"></i> Phone number</div>
+        <div class="label"><i class="fas fa-mobile-alt"></i> Mobile Number</div>
         <div class="input-box">
-            <div style="padding:0 15px;">+91 <i class="fas fa-chevron-down" style="font-size:10px;"></i></div>
-            <input type="number" id="rPhone" placeholder="Please enter the phone number">
+            <div style="padding:0 15px; border-right: 1px solid #1f2855; color: var(--cyan); font-weight: bold;">+91</div>
+            <input type="number" id="rPhone" placeholder="Enter phone number">
         </div>
     </div>
 
     <div class="input-group">
-        <div class="label"><i class="fas fa-lock"></i> Set password</div>
+        <div class="label"><i class="fas fa-lock"></i> Set Password</div>
         <div class="input-box">
-            <input type="password" id="rPass" placeholder="Set password">
-            <i class="far fa-eye-slash" style="padding:15px; color:var(--gray);"></i>
+            <input type="password" id="rPass" placeholder="Enter your password">
+            <i class="far fa-eye-slash" style="padding:15px; color:var(--gray);" onclick="togglePass('rPass')"></i>
         </div>
     </div>
 
     <div class="input-group">
-        <div class="label"><i class="fas fa-lock"></i> Confirm password</div>
+        <div class="label"><i class="fas fa-check-double"></i> Confirm Password</div>
         <div class="input-box">
-            <input type="password" id="rConfirm" placeholder="Confirm password">
-            <i class="far fa-eye-slash" style="padding:15px; color:var(--gray);"></i>
+            <input type="password" id="rConfirm" placeholder="Re-enter password">
+            <i class="far fa-eye-slash" style="padding:15px; color:var(--gray);" onclick="togglePass('rConfirm')"></i>
         </div>
     </div>
 
     <div class="input-group">
-        <div class="label"><i class="fas fa-user-friends"></i> Invite code</div>
+        <div class="label"><i class="fas fa-user-friends"></i> Invite Code (Referral)</div>
         <div class="input-box">
-            <input type="text" id="rInvite" placeholder="Please enter invite code">
+            <input type="text" id="rInvite" placeholder="Enter Invite Code">
         </div>
+        <p style="font-size:11px; color: var(--gold); margin-top: 5px;">* Get ₹20 registration bonus using invite code.</p>
     </div>
 
-    <div style="font-size: 12px; margin-top: 20px;">
-        <i class="fas fa-check-circle" style="color:var(--cyan);"></i> I have read and agree <span style="color:red;">[Privacy Agreement]</span>
+    <div style="font-size: 12px; margin-top: 20px; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-check-circle" style="color:var(--cyan);"></i> 
+        <span>I have read and agree <span style="color:var(--cyan);">[Privacy Agreement]</span></span>
     </div>
 
-    <button class="btn-reg" onclick="register()">Register</button>
-    <button onclick="location.href='login.html'" style="width:100%; background:none; border:none; color:white; margin-top:20px;">I have an account <span style="color:var(--cyan);">Login</span></button>
+    <button class="btn-reg" onclick="register()">Create Account</button>
+    <button onclick="location.href='login.html'" style="width:100%; background:none; border:none; color:white; margin-top:20px; font-size: 14px;">Already have an account? <span style="color:var(--cyan); font-weight:bold;">Login</span></button>
 </div>
 
 <script>
+    // Firebase Setup
     const firebaseConfig = { databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    function register() {
-        const phone = document.getElementById('rPhone').value;
-        const pass = document.getElementById('rPass').value;
-        const confirm = document.getElementById('rConfirm').value;
+    // --- REFERRAL LINK LOGIC ---
+    window.onload = function() {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('ref');
         
-        if(!phone || !pass) return alert("Fill all fields!");
-        if(pass !== confirm) return alert("Password not matching!");
+        // Agar Google par link dala hai toh code box mein aa jayega
+        if (code) {
+            document.getElementById('rInvite').value = code;
+            localStorage.setItem('temp_ref', code);
+        } else if (localStorage.getItem('temp_ref')) {
+            document.getElementById('rInvite').value = localStorage.getItem('temp_ref');
+        }
+    }
 
-        const userId = "JALWA-" + Math.floor(Math.random() * 900000);
-        firebase.database().ref('users/' + userId).set({
-            phone: phone, password: pass, balance: 0, userId: userId
-        }).then(() => {
-            localStorage.setItem('jalwa_id', userId);
-            window.location.href = "index.html";
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg; t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3000);
+    }
+
+    function togglePass(id) {
+        const x = document.getElementById(id);
+        x.type = x.type === "password" ? "text" : "password";
+    }
+
+    async function register() {
+        const ph = document.getElementById('rPhone').value.trim();
+        const ps = document.getElementById('rPass').value.trim();
+        const cp = document.getElementById('rConfirm').value.trim();
+        const ref = document.getElementById('rInvite').value.trim() || "none";
+        
+        if (ph.length < 10) return showToast("Enter 10 digit number!");
+        if (ps.length < 4) return showToast("Password too short!");
+        if (ps !== cp) return showToast("Password mismatch!");
+
+        // Check if user already exists
+        const check = await db.ref('users/' + ph).once('value');
+        if (check.exists()) return showToast("Mobile already registered!");
+
+        // Create User Object
+        const userData = {
+            phone: ph,
+            password: ps,
+            balance: 0,
+            invitedBy: ref,
+            totalDeposit: 0,
+            totalWithdraw: 0,
+            lastCheckin: "",
+            regDate: new Date().toLocaleString()
+        };
+
+        db.ref('users/' + ph).set(userData).then(() => {
+            localStorage.setItem('jalwa_user_phone', ph);
+            showToast("Registration Successful!");
+            setTimeout(() => { window.location.href = "index.html"; }, 1500);
+        }).catch(err => {
+            showToast("Database Error!");
         });
     }
 </script>
 </body>
 </html>
-
