@@ -183,6 +183,7 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // GAME BALANCE FIX: jalwa_id ki jagah jalwa_user_phone check karo
     let userPhone = localStorage.getItem('jalwa_user_phone');
     let userBalance = 0;
     let totalDep = 0;
@@ -212,7 +213,10 @@
         } else {
             if(!snap.exists() || snap.val().password !== ps) return showToast("Wrong ID/Password!");
         }
+        
+        // LOGIN SUCCESS: Game balance connectivity ke liye ye dono save karna zaroori hai
         localStorage.setItem('jalwa_user_phone', ph);
+        localStorage.setItem('jalwa_id', ph); 
         location.reload();
     }
 
