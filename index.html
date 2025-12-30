@@ -42,9 +42,25 @@
         .nav-item i { font-size: 20px; display: block; margin-bottom: 4px; }
         
         #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--cyan); color: black; padding: 10px 25px; border-radius: 20px; display: none; z-index: 5000; font-weight: bold; font-size: 13px; }
+
+        /* POPUP STYLING */
+        #global-notice { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
+        .notice-box { background: #10142d; width: 100%; max-width: 350px; border-radius: 20px; border: 2px solid var(--cyan); text-align: center; overflow: hidden; }
+        .notice-header { background: var(--cyan); color: #000; padding: 12px; font-weight: bold; }
+        .notice-body { padding: 20px; font-size: 14px; line-height: 1.5; color: #fff; }
     </style>
 </head>
 <body>
+
+<div id="global-notice">
+    <div class="notice-box">
+        <div class="notice-header">OFFICIAL NOTIFICATION</div>
+        <div class="notice-body" id="notice-msg">Please wait...</div>
+        <div style="padding: 15px;">
+            <button class="btn-main" onclick="document.getElementById('global-notice').style.display='none'">I UNDERSTAND</button>
+        </div>
+    </div>
+</div>
 
 <div id="toast">Message</div>
 
@@ -161,9 +177,19 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // FIXED: Multi-Game ID Sync
     let userPhone = localStorage.getItem('jalwa_user_phone') || localStorage.getItem('jalwa_id');
     let userBalance = 0;
+
+    // POPUP LISTENER
+    db.ref('appControl/popup').on('value', snap => {
+        const data = snap.val();
+        if(data && data.status === 'on') {
+            document.getElementById('notice-msg').innerHTML = data.msg;
+            document.getElementById('global-notice').style.display = 'flex';
+        } else {
+            document.getElementById('global-notice').style.display = 'none';
+        }
+    });
 
     window.onload = function() {
         if(userPhone) {
@@ -173,10 +199,9 @@
         }
     }
 
+    // ... (Baki ka handlesAuth, initApp functions same hain) ...
     function initApp() {
         document.getElementById('refLink').innerText = "https://jalwa-v7.vercel.app/?ref=" + userPhone;
-        
-        // Master Balance Sync (Real-time)
         db.ref('users/' + userPhone).on('value', snap => {
             const data = snap.val();
             if(data) {
@@ -192,9 +217,7 @@
         const ps = document.getElementById('authPass').value.trim();
         const ref = document.getElementById('authRef').value.trim() || "none";
         const isReg = document.getElementById('tab-reg').classList.contains('active');
-
         if(ph.length < 10 || ps === "") return showToast("Enter Details!");
-        
         const snap = await db.ref('users/' + ph).once('value');
         if(isReg) {
             if(snap.exists()) return showToast("Already exists!");
@@ -202,8 +225,6 @@
         } else {
             if(!snap.exists() || snap.val().password !== ps) return showToast("Wrong Details!");
         }
-
-        // SET BOTH IDS FOR COMPATIBILITY
         localStorage.setItem('jalwa_user_phone', ph);
         localStorage.setItem('jalwa_id', ph); 
         location.reload();
@@ -219,7 +240,6 @@
     }
 
     function loadHistory() {
-        // Deposit History with Design
         db.ref('requests/deposits').orderByChild('uid').equalTo(userPhone).on('value', snap => {
             const list = document.getElementById('fullDepHistory'); list.innerHTML = "";
             snap.forEach(i => {
@@ -227,7 +247,6 @@
                 list.innerHTML += `<div class="hist-card"><div class="hist-flex"><b>₹${v.amount}</b><span class="status-${v.status}">${v.status}</span></div><small>UTR: ${v.utr}</small></div>`;
             });
         });
-        // Withdrawal History with Design
         db.ref('requests/withdrawals').orderByChild('uid').equalTo(userPhone).on('value', snap => {
             const list = document.getElementById('fullWitHistory'); list.innerHTML = "";
             snap.forEach(i => {
