@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Jalwa Pro Dashboard</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { 
@@ -43,10 +45,9 @@
         .nav-item i { font-size: 20px; display: block; margin-bottom: 4px; }
 
         input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #1f2855; background: #06091b; color: white; box-sizing: border-box; }
-        .btn-main { width: 100%; background: var(--cyan); color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-main { width: 100%; background: var(--cyan); color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; }
         #notif { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--cyan); color: black; padding: 10px 20px; border-radius: 30px; display: none; z-index: 40000; font-size: 14px; font-weight: bold; }
         
-        /* History Item Style */
         .hist-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1f2855; font-size: 13px; }
     </style>
 </head>
@@ -71,7 +72,6 @@
 <div id="notif">Notification</div>
 
 <div class="app-container">
-    
     <div id="home" class="page active">
         <div class="top-bar">
             <div style="font-size:22px; font-weight:900; color:var(--cyan); letter-spacing: 1px;">JALWA</div>
@@ -80,7 +80,7 @@
             </div>
         </div>
         <div style="margin: 15px; background: rgba(0,255,202,0.1); padding: 8px; border-radius: 5px;">
-            <marquee style="font-size: 12px; color: var(--cyan);">⚡ Withdrawals are processed instantly. | 🎁 Claim Daily Reward in Activity section.</marquee>
+            <marquee style="font-size: 12px; color: var(--cyan);">⚡ Withdrawals instant. | 🎁 Claim Daily Reward in Activity.</marquee>
         </div>
         <div class="game-grid">
             <a href="game.html" class="game-card" style="border-color:var(--cyan)">
@@ -105,8 +105,8 @@
             <button class="btn-main" style="background:white" onclick="showPage('withdraw')">WITHDRAW</button>
         </div>
         <div class="card" style="display:flex; justify-content: space-around; text-align:center;">
-            <div><small style="color:var(--text-gray)">Total Deposit</small><br><b id="totalDep" style="color:var(--cyan)">₹0.00</b></div>
-            <div><small style="color:var(--text-gray)">Total Withdraw</small><br><b id="totalWith" style="color:var(--red)">₹0.00</b></div>
+            <div><small style="color:var(--text-gray)">Total Deposit</small><br><b id="totalDep">₹0.00</b></div>
+            <div><small style="color:var(--text-gray)">Total Withdraw</small><br><b id="totalWith">₹0.00</b></div>
         </div>
     </div>
 
@@ -137,8 +137,8 @@
     <div id="activity" class="page">
         <div class="top-bar"><b>Promotions</b></div>
         <div class="card" style="text-align: center; border: 1px solid var(--gold); background: #1a1e3a;">
-            <h3 style="color:var(--gold)">INVITE FRIENDS</h3>
-            <p>Recharge ₹500 & Get <b>₹200 Bonus</b>!</p>
+            <h3 style="color:var(--gold); margin-bottom: 5px;">INVITE FRIENDS</h3>
+            <p style="margin: 0 0 10px 0; font-size: 14px;">Recharge ₹500 & Get <b>₹200 Bonus</b>!</p>
             <div style="background:#06091b; padding:10px; border-radius:8px; display:flex; justify-content:space-between; border:1px dashed var(--cyan);">
                 <span id="refLink" style="font-size:11px;">https://rebrand.ly/2cuhjgg</span>
                 <i class="fas fa-copy" style="color:var(--cyan)" onclick="copyText('refLink')"></i>
@@ -154,21 +154,17 @@
         <div style="text-align: center; padding: 40px 15px; background: #161d3d;">
             <div style="width:70px; height:70px; background:var(--cyan); border-radius:50%; margin: auto; border:3px solid white;"></div>
             <h3>UID: 8754538</h3>
-            <h2 id="accBal" style="color:var(--cyan); margin:10px 0;">₹0.00</h2>
+            <h2 id="accBal" style="color:var(--cyan);">₹0.00</h2>
         </div>
-        
         <div class="card" style="padding: 0; overflow: hidden;">
-            <div style="padding: 15px; background: #1a237e; display: flex; justify-content: space-between; align-items: center;" onclick="toggleHistory()">
-                <span><i class="fas fa-history" style="margin-right: 10px;"></i> My Game History</span>
+            <div style="padding: 15px; background: #1a237e; display: flex; justify-content: space-between; cursor:pointer;" onclick="toggleHistory()">
+                <span><i class="fas fa-history"></i> My Game History</span>
                 <i class="fas fa-chevron-down" id="histIcon"></i>
             </div>
-            <div id="historyContent" style="padding: 0 15px; display: none; background: #06091b;">
-                <div class="hist-item"><span>WinGo #382</span> <span style="color:var(--cyan)">+₹190.00</span></div>
-                <div class="hist-item"><span>WinGo #381</span> <span style="color:var(--red)">-₹100.00</span></div>
-                <div class="hist-item"><span>Aviator #92</span> <span style="color:var(--cyan)">+₹450.00</span></div>
+            <div id="historyContent" style="padding: 15px; display: none; background: #06091b;">
+                <div class="hist-item"><span>Open WinGo for live history</span></div>
             </div>
         </div>
-
         <button class="btn-main" style="background:var(--red); color:white; width:90%; margin:20px 5%; border-radius: 30px;" onclick="location.reload()">LOG OUT</button>
     </div>
 
@@ -181,32 +177,65 @@
 </div>
 
 <script>
-    let userData = JSON.parse(localStorage.getItem('jalwa_user')) || { 
-        balance: 5000.00, 
-        totalDeposit: 0.00, 
-        totalWithdraw: 0.00, 
-        lastClaim: '' 
-    };
+    const firebaseConfig = { databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const userId = localStorage.getItem('jalwa_id') || 'test_user';
 
-    function updateDisplay() {
-        const bal = '₹' + parseFloat(userData.balance).toFixed(2);
+    let userBalance = 0, totalDeposit = 0, totalWithdraw = 0;
+
+    db.ref('users/' + userId).on('value', snap => {
+        const data = snap.val();
+        if(data) {
+            userBalance = data.balance || 0;
+            totalDeposit = data.totalDeposit || 0;
+            totalWithdraw = data.totalWithdraw || 0;
+            updateUI();
+        } else {
+            db.ref('users/' + userId).set({ balance: 5000, totalDeposit: 0, totalWithdraw: 0 });
+        }
+    });
+
+    function updateUI() {
+        const bal = '₹' + parseFloat(userBalance).toFixed(2);
         document.getElementById('globalBalance').innerText = bal;
         if(document.getElementById('walBal')) document.getElementById('walBal').innerText = bal;
         if(document.getElementById('accBal')) document.getElementById('accBal').innerText = bal;
-        if(document.getElementById('totalDep')) document.getElementById('totalDep').innerText = '₹' + parseFloat(userData.totalDeposit).toFixed(2);
-        if(document.getElementById('totalWith')) document.getElementById('totalWith').innerText = '₹' + parseFloat(userData.totalWithdraw).toFixed(2);
-        localStorage.setItem('jalwa_user', JSON.stringify(userData));
+        if(document.getElementById('totalDep')) document.getElementById('totalDep').innerText = '₹' + totalDeposit.toFixed(2);
+        if(document.getElementById('totalWith')) document.getElementById('totalWith').innerText = '₹' + totalWithdraw.toFixed(2);
     }
 
-    function checkPopup() {
-        if (localStorage.getItem('stopPopupDate') !== new Date().toDateString()) {
-            document.getElementById('bonusOverlay').style.display = 'flex';
-        }
+    async function handleDeposit() {
+        let amt = parseFloat(document.getElementById('dAmt').value);
+        if(amt >= 500) {
+            await db.ref('users/' + userId).update({ 
+                balance: userBalance + amt,
+                totalDeposit: totalDeposit + amt
+            });
+            showNotif("Deposit Success!");
+            showPage('wallet');
+        } else { showNotif("Min ₹500!"); }
     }
 
-    function closeBonus() {
-        if (document.getElementById('stopToday').checked) localStorage.setItem('stopPopupDate', new Date().toDateString());
-        document.getElementById('bonusOverlay').style.display = 'none';
+    async function handleWithdraw() {
+        let amt = parseFloat(document.getElementById('wAmt').value);
+        if(amt >= 550 && amt <= userBalance) {
+            await db.ref('users/' + userId).update({ 
+                balance: userBalance - amt,
+                totalWithdraw: totalWithdraw + amt
+            });
+            showNotif("Withdrawal Requested!");
+        } else { showNotif("Min ₹550 or Low Balance!"); }
+    }
+
+    async function claimDaily() {
+        let today = new Date().toDateString();
+        let last = localStorage.getItem('lastClaim');
+        if(last === today) return showNotif("Already claimed today!");
+        
+        await db.ref('users/' + userId).update({ balance: userBalance + 20 });
+        localStorage.setItem('lastClaim', today);
+        showNotif("₹20 Reward Added!");
     }
 
     function showPage(pId, el) {
@@ -234,44 +263,23 @@
         const icon = document.getElementById('histIcon');
         if(content.style.display === 'none') {
             content.style.display = 'block';
-            icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+            icon.className = 'fas fa-chevron-up';
         } else {
             content.style.display = 'none';
-            icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+            icon.className = 'fas fa-chevron-down';
         }
     }
 
-    function handleDeposit() {
-        let amt = parseFloat(document.getElementById('dAmt').value);
-        if(amt >= 500) {
-            userData.balance += amt;
-            userData.totalDeposit += amt;
-            updateDisplay();
-            showNotif("Deposit Success!");
-            showPage('wallet');
-        } else { showNotif("Min ₹500!"); }
+    window.onload = function() { 
+        if (localStorage.getItem('stopPopupDate') !== new Date().toDateString()) {
+            document.getElementById('bonusOverlay').style.display = 'flex';
+        } 
+    };
+    function closeBonus() { 
+        if (document.getElementById('stopToday').checked) localStorage.setItem('stopPopupDate', new Date().toDateString()); 
+        document.getElementById('bonusOverlay').style.display = 'none'; 
     }
-
-    function handleWithdraw() {
-        let amt = parseFloat(document.getElementById('wAmt').value);
-        if(amt >= 550 && amt <= userData.balance) {
-            userData.balance -= amt;
-            userData.totalWithdraw += amt;
-            updateDisplay();
-            showNotif("Withdrawal Requested!");
-        } else { showNotif("Min ₹550 or Low Balance!"); }
-    }
-
-    function claimDaily() {
-        let today = new Date().toDateString();
-        if(userData.lastClaim === today) return showNotif("Already claimed!");
-        userData.balance += 20;
-        userData.lastClaim = today;
-        updateDisplay();
-        showNotif("₹20 Claimed!");
-    }
-
-    window.onload = function() { updateDisplay(); checkPopup(); };
 </script>
 </body>
 </html>
+
