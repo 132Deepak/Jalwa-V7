@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jalwa Stairs - The Trap Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        :root { --bg: #020617; --cyan: #00f2ff; --gold: #fbbf24; --green: #22c55e; --red: #ef4444; }
+        body { background: var(--bg); font-family: 'Orbitron', sans-serif; margin: 0; height: 100vh; overflow: hidden; color: white; display: flex; flex-direction: column; align-items: center; }
+        .header { width: 100%; padding: 12px 20px; background: rgba(0,0,0,0.9); display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--cyan); box-sizing: border-box; }
+        .brand { font-family: 'Bebas Neue'; font-size: 24px; color: var(--cyan); text-shadow: 0 0 8px var(--cyan); }
+        .bal-box { font-family: 'Bebas Neue'; font-size: 20px; color: var(--gold); border: 1px solid var(--gold); padding: 2px 12px; border-radius: 50px; background: rgba(251, 191, 36, 0.1); }
+        .game-container { flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 140px; }
+        #status { font-size: 14px; margin-bottom: 15px; color: var(--cyan); font-weight: bold; height: 20px; text-transform: uppercase; letter-spacing: 1px; text-align: center; }
+        .game-board { display: flex; flex-direction: column-reverse; gap: 6px; width: 90%; max-width: 300px; }
+        .row { display: flex; gap: 10px; opacity: 0.1; transition: 0.3s; padding: 6px; border-radius: 10px; background: rgba(255,255,255,0.03); }
+        .row.active { opacity: 1; border: 1px solid var(--cyan); background: rgba(0, 242, 255, 0.05); }
+        .step { flex: 1; height: 38px; background: #1e293b; border: 1.5px solid #334155; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #94a3b8; }
+        .step.win { background: var(--green); box-shadow: 0 0 15px var(--green); color: white; border: none; }
+        .step.lose { background: var(--red); box-shadow: 0 0 15px var(--red); color: white; border: none; }
+        .mult-tag { width: 45px; font-family: 'Bebas Neue'; font-size: 16px; color: var(--gold); display: flex; align-items: center; justify-content: center; }
+        .controls { position: fixed; bottom: 0; width: 100%; max-width: 500px; background: rgba(15, 23, 42, 0.98); padding: 20px; border-top: 3px solid var(--cyan); border-radius: 30px 30px 0 0; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .bet-input { width: 85%; padding: 12px; border: 1px solid var(--cyan); border-radius: 12px; text-align: center; font-family: 'Orbitron'; font-size: 20px; background: #000; color: var(--cyan); outline: none; }
+        .btn-main { width: 90%; padding: 16px; border: none; border-radius: 15px; font-family: 'Bebas Neue'; font-size: 24px; cursor: pointer; letter-spacing: 2px; }
+        .start { background: var(--cyan); color: #000; }
+        .cashout { background: var(--green); color: white; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="brand">JALWA <span style="color:white">STAIRS</span></div>
+    <div class="bal-box">₹<span id="balVal">0.00</span></div>
+</div>
+
+<div class="game-container">
+    <div id="status">WELCOME AMIT</div>
+    <div class="game-board" id="board"></div>
+</div>
+
+<div class="controls">
+    <input type="number" id="betAmt" class="bet-input" value="10">
+    <button class="btn-main start" id="startBtn" onclick="startGame()">START JALWA</button>
+    <button class="btn-main cashout" id="cashBtn" onclick="cashOut()">CASHOUT (₹0)</button>
+</div>
+
+<script>
+    // 🔗 DASHBOARD LOGIC
+    let mainRecharge = 500; // Amit ka recharge amount
+    let balance = parseFloat(localStorage.getItem('user_balance')) || mainRecharge;
+    let betAmt = 0;
+    let currentLevel = 0;
+    let gameActive = false;
+    let multipliers = [1.5, 3.5, 8, 15, 30, 70, 150, 400];
+
+    function updateUI() {
+        document.getElementById('balVal').innerText = balance.toFixed(2);
+        localStorage.setItem('user_balance', balance.toFixed(2));
+    }
+    updateUI();
+
+    function showStatus(msg, color) {
+        const s = document.getElementById('status');
+        s.innerText = msg; s.style.color = color || 'var(--cyan)';
+    }
+
+    function createBoard() {
+        const board = document.getElementById('board'); board.innerHTML = '';
+        multipliers.forEach((m, i) => {
+            const row = document.createElement('div');
+            row.className = 'row'; row.id = `row-${i}`;
+            row.innerHTML = `<div class="mult-tag">${m}x</div>
+                             <div class="step" onclick="makeMove(${i}, 0)">?</div>
+                             <div class="step" onclick="makeMove(${i}, 1)">?</div>`;
+            board.appendChild(row);
+        });
+    }
+    createBoard();
+
+    function startGame() {
+        betAmt = parseFloat(document.getElementById('betAmt').value);
+        if(balance < betAmt || betAmt <= 0) {
+            showStatus("LOW BALANCE! RECHARGE", "var(--red)"); return;
+        }
+        balance -= betAmt; updateUI();
+        gameActive = true; currentLevel = 0; createBoard();
+        document.getElementById('row-0').classList.add('active');
+        document.getElementById('startBtn').style.display = 'none';
+        document.getElementById('cashBtn').style.display = 'block';
+        showStatus("GAME ON - CHOOSE WISELY", "var(--cyan)");
+    }
+
+    function makeMove(rowIdx, stepIdx) {
+        if(!gameActive || rowIdx !== currentLevel) return;
+        const steps = document.getElementById(`row-${rowIdx}`).querySelectorAll('.step');
+        let isSafe = false;
+
+        // --- 🛡️ THE TRAP LOGIC ---
+        
+        // 1. RECOVERY MODE: Agar balance ₹300 se kam hai, toh use ₹500 ke kareeb laane do
+        if (balance < 300) {
+            isSafe = (currentLevel < 2) ? true : Math.random() < 0.4;
+        }
+        // 2. CEILING MODE: Agar uska potential win ₹500 (Original Recharge) se upar ja raha hai
+        else if ((balance + (betAmt * multipliers[currentLevel])) >= 510) {
+            isSafe = false; // Never let him cross ₹510-₹550
+        }
+        // 3. ALL-IN TRAP: Agar wo gusse mein badi bet lagaye (>30% of his balance)
+        else if (betAmt > (balance * 0.3)) {
+            isSafe = false; // Seedha hara do
+        }
+        // 4. DEFAULT: Harne ka chance zyada
+        else {
+            isSafe = Math.random() < 0.25;
+        }
+
+        if(isSafe) {
+            steps[stepIdx].classList.add('win'); steps[stepIdx].innerText = '✔';
+            currentLevel++;
+            let winSoFar = betAmt * multipliers[rowIdx];
+            document.getElementById('cashBtn').innerText = `CASHOUT ₹${winSoFar.toFixed(0)}`;
+            showStatus(`LEVEL ${currentLevel} PASSED`, "var(--green)");
+            if(currentLevel < multipliers.length) document.getElementById(`row-${currentLevel}`).classList.add('active');
+            else cashOut();
+        } else {
+            steps[stepIdx].classList.add('lose'); steps[stepIdx].innerText = '✘';
+            showStatus("Opps! TRY AGAIN", "var(--red)");
+            setTimeout(() => endGame(false), 800);
+        }
+    }
+
+    function cashOut() {
+        if(!gameActive || currentLevel === 0) return;
+        balance += (betAmt * multipliers[currentLevel-1]);
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        showStatus("PROFIT ADDED TO WALLET", "var(--gold)");
+        endGame(true);
+    }
+
+    function endGame(won) {
+        gameActive = false;
+        document.getElementById('startBtn').style.display = 'block';
+        document.getElementById('cashBtn').style.display = 'none';
+        updateUI();
+    }
+</script>
+</body>
+</html>
