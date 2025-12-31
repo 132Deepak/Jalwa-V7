@@ -146,16 +146,27 @@
         let forced = (await db.ref('aviator/control/nextCrash').once('value')).val();
         let totalActiveBet = bets[1].amt + bets[2].amt;
 
+        // --- SMART MANIPULATION START ---
         if (forced && forced > 0) {
             crashAt = forced;
             db.ref('aviator/control/nextCrash').set(0);
-        } else if (totalActiveBet >= 20) {
-            crashAt = (Math.random() * (1.8 - 1.2) + 1.2).toFixed(2);
-        } else if (totalActiveBet === 0) {
-            crashAt = (Math.random() * (7.0 - 4.0) + 4.0).toFixed(2);
         } else {
-            crashAt = (Math.random() * 2.5 + 1.1).toFixed(2);
+            // Agar balance 350+ hai ya ek baar ki bet 50+ hai -> HARAO (Crash 1.1x to 1.4x)
+            if (wallet >= 350 || totalActiveBet >= 50) {
+                crashAt = (Math.random() * (1.45 - 1.05) + 1.05).toFixed(2);
+            } 
+            // Agar bet choti hai 10-20 Rs -> JEETAO (Crash 3.0x to 6.0x)
+            else if (totalActiveBet > 0 && totalActiveBet <= 30) {
+                crashAt = (Math.random() * (6.0 - 3.0) + 3.0).toFixed(2);
+            }
+            // Normal case
+            else if (totalActiveBet === 0) {
+                crashAt = (Math.random() * (5.0 - 2.0) + 2.0).toFixed(2);
+            } else {
+                crashAt = (Math.random() * 2.1 + 1.1).toFixed(2);
+            }
         }
+        // --- SMART MANIPULATION END ---
 
         [1,2].forEach(id => {
             if(bets[id].amt > 0) {
