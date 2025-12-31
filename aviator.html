@@ -10,63 +10,65 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; height: 100vh; overflow: hidden; color: #fff; display: flex; flex-direction: column; }
         .header { display: flex; justify-content: space-between; padding: 10px 15px; background: #1b1c1d; align-items: center; border-bottom: 1px solid #333; }
-        .logo { color: #d11345; font-size: 20px; font-weight: 900; font-style: italic; }
-        .wallet { color: #28a745; font-weight: bold; font-size: 16px; }
-        .history-top { display: flex; gap: 6px; padding: 8px 15px; background: #141516; overflow-x: auto; min-height: 40px; scrollbar-width: none; }
-        .hist-chip { padding: 3px 12px; border-radius: 12px; font-size: 11px; background: #2c2d30; color: #9b59b6; border: 1px solid #444; font-weight: bold; flex-shrink: 0; }
-        .game-canvas { position: relative; width: 100%; height: 220px; background: #000; overflow: hidden; border-bottom: 2px solid #1b1c1d; }
-        #mult-text { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); font-size: 55px; font-weight: 900; z-index: 10; transition: color 0.3s; }
-        #dot-object { position: absolute; bottom: 20px; left: 20px; width: 14px; height: 14px; background: #ff0040; border-radius: 50%; z-index: 25; box-shadow: 0 0 20px #ff0040; }
-        #trail-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; }
-        #trail-path-fill { fill: url(#redGrad); opacity: 0.5; }
-        #trail-path-line { fill: none; stroke: #d11345; stroke-width: 3; }
-        .loading-line { position: absolute; bottom: 0; left: 0; height: 4px; background: #d11345; width: 0%; z-index: 30; }
-        #result-popup { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); z-index: 100; padding: 10px 25px; border-radius: 50px; font-weight: 900; transition: 0.3s; pointer-events: none; white-space: nowrap; }
-        #result-popup.show { transform: translate(-50%, -50%) scale(1); }
-        .pop-win { background: rgba(40, 167, 69, 0.95); box-shadow: 0 0 25px #28a745; border: 2px solid #fff; }
+        .logo { color: #d11345; font-size: 18px; font-weight: 900; font-style: italic; }
+        .wallet { color: #28a745; font-weight: bold; font-size: 14px; }
         
-        .content-area { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
-        .betting-area { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-        .bet-card { background: #1b1c1d; border-radius: 15px; padding: 12px; border: 1px solid #333; }
-        .controls { display: flex; gap: 10px; height: 95px; }
-        .input-part { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-        .stepper { display: flex; align-items: center; background: #000; border-radius: 20px; padding: 5px 12px; border: 1px solid #444; justify-content: space-between; }
-        .stepper button { background: none; border: none; color: #fff; font-size: 22px; font-weight: 900; width: 30px; cursor: pointer; }
-        .stepper input { background: none; border: none; color: #fff; width: 60px; text-align: center; font-size: 15px; font-weight: bold; outline: none; }
-        .chips { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .chips div { background: #2c2d30; padding: 8px; border-radius: 8px; font-size: 11px; text-align: center; font-weight: 900; cursor: pointer; border: 1px solid #444; }
-        .main-btn { flex: 1.3; background: #28a745; border-radius: 15px; border: none; color: #fff; font-weight: 900; box-shadow: 0 5px 0 #1a632a; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .cashout { background: #ff9800 !important; box-shadow: 0 5px 0 #e68a00 !important; }
-        .waiting-btn { background: #555 !important; box-shadow: 0 4px 0 #333 !important; }
+        /* History Bar */
+        .history-top { display: flex; gap: 6px; padding: 8px 15px; background: #141516; overflow-x: auto; min-height: 35px; scrollbar-width: none; }
+        .hist-chip { padding: 2px 10px; border-radius: 10px; font-size: 10px; background: #2c2d30; color: #9b59b6; border: 1px solid #444; flex-shrink: 0; }
+        
+        /* Canvas Fix */
+        .game-canvas { position: relative; width: 100%; height: 180px; background: #000; overflow: hidden; border-bottom: 2px solid #1b1c1d; }
+        #mult-text { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); font-size: 45px; font-weight: 900; z-index: 10; transition: color 0.3s; }
+        #dot-object { position: absolute; bottom: 20px; left: 20px; width: 12px; height: 12px; background: #ff0040; border-radius: 50%; z-index: 25; box-shadow: 0 0 15px #ff0040; }
+        #trail-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; }
+        
+        .loading-line { position: absolute; bottom: 0; left: 0; height: 3px; background: #d11345; width: 0%; z-index: 30; }
+        
+        /* UI Scaling for smaller screens */
+        .content-area { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; background: #000; }
+        .betting-area { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+        .bet-card { background: #1b1c1d; border-radius: 12px; padding: 10px; border: 1px solid #333; }
+        .controls { display: flex; gap: 8px; height: 80px; }
+        .input-part { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+        .stepper { display: flex; align-items: center; background: #000; border-radius: 15px; padding: 4px 10px; border: 1px solid #444; justify-content: space-between; }
+        .stepper button { background: none; border: none; color: #fff; font-size: 18px; font-weight: 900; width: 25px; }
+        .stepper input { background: none; border: none; color: #fff; width: 50px; text-align: center; font-size: 14px; font-weight: bold; outline: none; }
+        .chips { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+        .chips div { background: #2c2d30; padding: 6px; border-radius: 6px; font-size: 10px; text-align: center; font-weight: bold; border: 1px solid #444; }
+        
+        .main-btn { flex: 1.2; background: #28a745; border-radius: 12px; border: none; color: #fff; font-weight: 900; font-size: 14px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .cashout { background: #ff9800 !important; }
+        .waiting-btn { background: #555 !important; }
 
-        #my-bets-panel { display: none; background: #141516; flex-grow: 1; overflow-y: auto; padding: 12px; font-size: 13px; }
-        .bet-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; }
+        .bottom-nav { background: #1b1c1d; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #333; }
+        .nav-item { color: #888; font-weight: bold; font-size: 12px; }
+        .nav-active { color: #fff; border-bottom: 2px solid #d11345; }
 
-        .bottom-nav { background: #1b1c1d; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #333; }
-        .nav-item { color: #888; font-weight: bold; cursor: pointer; font-size: 14px; padding: 5px 20px; transition: 0.3s; text-align: center; }
-        .nav-active { color: #fff; border-bottom: 3px solid #d11345; }
+        #result-popup { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); z-index: 100; padding: 8px 20px; border-radius: 20px; font-weight: 900; transition: 0.3s; background: rgba(40, 167, 69, 0.95); }
+        #result-popup.show { transform: translate(-50%, -50%) scale(1); }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="logo" onclick="window.location.href='index.html'"><i class="fas fa-arrow-left"></i> Aviator</div>
+    <div class="logo" onclick="window.location.href='index.html'">AVIATOR</div>
     <div id="walletDisplay" class="wallet">0.00 Rs</div>
 </div>
 
 <div class="history-top" id="histLine"></div>
 
 <div class="game-canvas">
-    <div id="result-popup"></div>
+    <div id="result-popup">WIN!</div>
     <svg id="trail-svg">
         <defs>
             <linearGradient id="redGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:rgba(209, 19, 69, 0.9);" />
+                <stop offset="0%" style="stop-color:rgba(209, 19, 69, 0.8);" />
                 <stop offset="100%" style="stop-color:transparent;" />
             </linearGradient>
         </defs>
-        <path id="trail-path-fill" d="" />
-        <path id="trail-path-line" d="" />
+        <path id="trail-path-fill" fill="url(#redGrad)" d="" />
+        <path id="trail-path-line" fill="none" stroke="#d11345" stroke-width="3" d="" />
     </svg>
     <div id="loading-line" class="loading-line"></div>
     <div id="mult-text">1.00x</div>
@@ -79,27 +81,26 @@
             <div class="controls">
                 <div class="input-part">
                     <div class="stepper"><button onclick="step('v1',-1)">-</button><input id="v1" value="10.00" readonly><button onclick="step('v1',1)">+</button></div>
-                    <div class="chips"><div onclick="setV('v1',10)">10</div><div onclick="setV('v1',20)">20</div><div onclick="setV('v1',50)">50</div><div onclick="setV('v1',100)">100</div></div>
+                    <div class="chips"><div onclick="setV('v1',10)">10</div><div onclick="setV('v1',50)">50</div></div>
                 </div>
-                <button id="btn1" class="main-btn" onclick="handleBet(1)"><span id="txt1">BET</span><br><span id="s1">10.00 Rs</span></button>
+                <button id="btn1" class="main-btn" onclick="handleBet(1)"><span id="txt1">BET</span><br><span id="s1" style="font-size: 10px;">10.00 Rs</span></button>
             </div>
         </div>
         <div class="bet-card">
             <div class="controls">
                 <div class="input-part">
                     <div class="stepper"><button onclick="step('v2',-1)">-</button><input id="v2" value="10.00" readonly><button onclick="step('v2',1)">+</button></div>
-                    <div class="chips"><div onclick="setV('v2',10)">10</div><div onclick="setV('v2',20)">20</div><div onclick="setV('v2',50)">50</div><div onclick="setV('v2',100)">100</div></div>
+                    <div class="chips"><div onclick="setV('v2',10)">10</div><div onclick="setV('v2',50)">50</div></div>
                 </div>
-                <button id="btn2" class="main-btn" onclick="handleBet(2)"><span id="txt2">BET</span><br><span id="s2">10.00 Rs</span></button>
+                <button id="btn2" class="main-btn" onclick="handleBet(2)"><span id="txt2">BET</span><br><span id="s2" style="font-size: 10px;">10.00 Rs</span></button>
             </div>
         </div>
     </div>
-    <div id="my-bets-panel"></div>
 </div>
 
 <div class="bottom-nav">
-    <div class="nav-item nav-active" id="nav-all" onclick="toggleMyBets(false)">ALL BETS</div>
-    <div class="nav-item" id="nav-my" onclick="toggleMyBets(true)">MY BETS</div>
+    <div class="nav-item nav-active">GAME</div>
+    <div class="nav-item">MY BETS</div>
 </div>
 
 <script>
@@ -107,22 +108,19 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // MASTER SYNC
     const userId = localStorage.getItem('jalwa_user_phone') || localStorage.getItem('jalwa_id');
 
     let wallet = 0, multiplier = 1.0, gameStatus = "waiting", crashAt = 2.0;
     let bets = { 1: { active: false, amt: 0 }, 2: { active: false, amt: 0 } };
-    let myHistory = JSON.parse(localStorage.getItem('avi_hist')) || [];
-    let topStrip = JSON.parse(localStorage.getItem('avi_strip')) || [];
+    let topStrip = JSON.parse(localStorage.getItem('avi_strip')) || ['1.2x', '4.5x', '1.0x', '2.2x'];
 
-    // Real-time Balance from Dashboard
     db.ref('users/' + userId).on('value', snap => {
         wallet = snap.val()?.balance || 0;
         document.getElementById('walletDisplay').innerText = wallet.toFixed(2) + " Rs";
     });
 
     function initGame() {
-        renderHistory(); renderTopStrip();
+        renderTopStrip();
         gameStatus = "waiting"; multiplier = 1.0;
         document.getElementById('mult-text').innerText = "WAITING...";
         document.getElementById('mult-text').style.color = "#888";
@@ -136,37 +134,29 @@
             let elap = Date.now() - start;
             document.getElementById('loading-line').style.width = (elap / dur * 100) + "%";
             if(elap >= dur) { clearInterval(t); document.getElementById('loading-line').style.width = "0%"; startGame(); }
-        }, 20);
+        }, 30);
     }
 
     async function startGame() {
         gameStatus = "running";
         document.getElementById('mult-text').style.color = "#fff";
         
-        let forced = (await db.ref('aviator/control/nextCrash').once('value')).val();
-        let totalActiveBet = bets[1].amt + bets[2].amt;
+        let totalActiveBet = (bets[1].amt || 0) + (bets[2].amt || 0);
 
-        // --- SMART MANIPULATION START ---
-        if (forced && forced > 0) {
-            crashAt = forced;
-            db.ref('aviator/control/nextCrash').set(0);
-        } else {
-            // Agar balance 350+ hai ya ek baar ki bet 50+ hai -> HARAO (Crash 1.1x to 1.4x)
-            if (wallet >= 350 || totalActiveBet >= 50) {
-                crashAt = (Math.random() * (1.45 - 1.05) + 1.05).toFixed(2);
-            } 
-            // Agar bet choti hai 10-20 Rs -> JEETAO (Crash 3.0x to 6.0x)
-            else if (totalActiveBet > 0 && totalActiveBet <= 30) {
-                crashAt = (Math.random() * (6.0 - 3.0) + 3.0).toFixed(2);
-            }
-            // Normal case
-            else if (totalActiveBet === 0) {
-                crashAt = (Math.random() * (5.0 - 2.0) + 2.0).toFixed(2);
-            } else {
-                crashAt = (Math.random() * 2.1 + 1.1).toFixed(2);
-            }
+        // --- 🛡️ SMART AMIT TRAP LOGIC ---
+        
+        // 1. HARD KILL: Agar Balance ₹350+ ho gaya ya Bet ₹50+ hai -> 100% Loss
+        if (wallet >= 350 || totalActiveBet >= 50) {
+            crashAt = (Math.random() * 0.4 + 1.05).toFixed(2); // 1.05x to 1.45x
+        } 
+        // 2. LALACH MODE: Choti bet par 90% chance jeetne ka
+        else if (totalActiveBet > 0 && totalActiveBet <= 30) {
+            crashAt = (Math.random() * 3.0 + 3.0).toFixed(2); // 3.0x to 6.0x
         }
-        // --- SMART MANIPULATION END ---
+        // 3. DEFAULT: Normal House Edge
+        else {
+            crashAt = (Math.random() * 1.5 + 1.1).toFixed(2);
+        }
 
         [1,2].forEach(id => {
             if(bets[id].amt > 0) {
@@ -189,14 +179,15 @@
                 }
             });
 
-            let x = 20 + (frame * 3);
-            let y = 20 + (Math.pow(frame / 10.5, 2.3));
+            // Dot & Trail Animation
+            let x = 20 + (frame * 2.5);
+            let y = 20 + (Math.pow(frame / 12, 2.2));
             let dot = document.getElementById('dot-object');
-            dot.style.left = Math.min(x, 320) + "px"; 
-            dot.style.bottom = Math.min(y, 200) + "px";
-
-            let dl = `M 20 200 Q 100 200 ${x} ${220-y}`;
-            let df = `M 20 220 Q 100 220 ${x} ${220-y} L ${x} 220 L 20 220 Z`;
+            dot.style.left = Math.min(x, 280) + "px"; 
+            dot.style.bottom = Math.min(y, 160) + "px";
+            
+            let dl = `M 20 160 Q 80 160 ${x} ${180-y}`;
+            let df = `M 20 180 Q 80 180 ${x} ${180-y} L ${x} 180 L 20 180 Z`;
             document.getElementById('trail-path-line').setAttribute('d', dl);
             document.getElementById('trail-path-fill').setAttribute('d', df);
 
@@ -205,15 +196,12 @@
                 document.getElementById('mult-text').innerText = "FLEW AWAY!";
                 document.getElementById('mult-text').style.color = "#d11345";
                 dot.style.transition = "transform 0.6s ease-in";
-                dot.style.transform = "translate(600px, -600px)";
-                [1,2].forEach(id => { 
-                    if(bets[id].active) saveHistory(bets[id].amt, multiplier.toFixed(2), 'loss'); 
-                    resetBtn(id); 
-                });
+                dot.style.transform = "translate(400px, -400px)";
+                [1,2].forEach(id => resetBtn(id));
                 saveStrip(multiplier.toFixed(2));
                 setTimeout(initGame, 3000);
             }
-        }, 40);
+        }, 50);
     }
 
     function handleBet(id) {
@@ -225,8 +213,7 @@
         } else if(gameStatus === "running" && bets[id].active) {
             let win = bets[id].amt * multiplier;
             wallet += win; updateDB();
-            showPopup(`WINNER! ₹${win.toFixed(2)}`, 'pop-win');
-            saveHistory(bets[id].amt, multiplier.toFixed(2), 'win', win);
+            showPopup(`+₹${win.toFixed(2)}`);
             resetBtn(id);
         }
     }
@@ -238,45 +225,16 @@
         document.getElementById('txt'+id).innerText = "BET"; 
         document.getElementById('s'+id).innerText = document.getElementById('v'+id).value + " Rs"; 
     }
-    function saveHistory(bet, mult, type, win = 0) {
-        let res = type === 'win' ? `+₹${win.toFixed(2)}` : `-₹${bet.toFixed(2)}`;
-        myHistory.unshift({ bet, mult, res, type });
-        localStorage.setItem('avi_hist', JSON.stringify(myHistory.slice(0,30)));
-        renderHistory();
-    }
-    function renderHistory() { 
-        document.getElementById('my-bets-panel').innerHTML = myHistory.length ? myHistory.map(b => `
-            <div class="bet-row">
-                <span>₹${b.bet}</span>
-                <span style="color:#888">${b.mult}x</span>
-                <b style="color:${b.type==='win'?'#28a745':'#d11345'}">${b.res}</b>
-            </div>`).join('') : '<p style="text-align:center;color:#666;margin-top:20px;">No bets yet</p>'; 
-    }
-    function saveStrip(m) { topStrip.unshift(m); localStorage.setItem('avi_strip', JSON.stringify(topStrip.slice(0,20))); renderTopStrip(); }
-    function renderTopStrip() { document.getElementById('histLine').innerHTML = topStrip.map(m => `<div class="hist-chip">${m}x</div>`).join(''); }
-    function showPopup(t, c) { let p = document.getElementById('result-popup'); p.innerHTML = t; p.className = 'show ' + c; setTimeout(() => p.classList.remove('show'), 2000); }
+    function saveStrip(m) { topStrip.unshift(m + 'x'); topStrip = topStrip.slice(0,15); renderTopStrip(); }
+    function renderTopStrip() { document.getElementById('histLine').innerHTML = topStrip.map(m => `<div class="hist-chip">${m}</div>`).join(''); }
+    function showPopup(t) { let p = document.getElementById('result-popup'); p.innerHTML = t; p.className = 'show'; setTimeout(() => p.classList.remove('show'), 2000); }
     function step(id, s) { 
         let el = document.getElementById(id); 
-        let v = parseFloat(el.value);
-        let nv = s > 0 ? (v < 50 ? v + 10 : v + 50) : Math.max(10, v - 10);
+        let nv = Math.max(10, parseFloat(el.value) + (s * 10));
         el.value = nv.toFixed(2); setV(id, nv); 
     }
     function setV(id, v) { document.getElementById(id).value = v.toFixed(2); document.getElementById('s'+id.slice(-1)).innerText = v.toFixed(2) + " Rs"; }
     
-    function toggleMyBets(s) { 
-        document.getElementById('my-bets-panel').style.display = s ? 'block' : 'none'; 
-        document.getElementById('betArea').style.display = s ? 'none' : 'flex';
-        
-        if(s) {
-            document.getElementById('nav-my').classList.add('nav-active');
-            document.getElementById('nav-all').classList.remove('nav-active');
-            renderHistory();
-        } else {
-            document.getElementById('nav-all').classList.add('nav-active');
-            document.getElementById('nav-my').classList.remove('nav-active');
-        }
-    }
-
     window.onload = function() {
         if(!userId) window.location.href = 'index.html';
         initGame();
