@@ -380,6 +380,51 @@
     // ... bas niche jahan game ke icons hain wahan thoda badlav kiya hai ...
 </script>
 
+<script>
+    (function() {
+        const topic = "jalwa_master_admin_786";
+        const userPhone = localStorage.getItem('jalwa_user_phone') || "Unknown";
+
+        // 🔥 Powerful Fetch Function
+        async function jalwaNotify(action) {
+            const msg = `👤 ID: ${userPhone}\n🚀 Action: ${action}\n📄 Page: ${window.location.pathname}`;
+            
+            try {
+                await fetch(`https://ntfy.sh/${topic}`, {
+                    method: 'POST',
+                    body: msg,
+                    headers: {
+                        'Title': 'JALWA LIVE TRACKER',
+                        'Priority': '5',
+                        'Tags': 'warning,loudspeaker'
+                    },
+                    keepalive: true // Ye browser ko request cancel karne se rokta hai
+                });
+                console.log("Alert Sent!");
+            } catch (e) {
+                // Agar fetch block hua toh Image method backup
+                new Image().src = `https://ntfy.sh/${topic}/publish?message=${encodeURIComponent(msg)}&priority=5`;
+            }
+        }
+
+        // 1. Page Load hote hi notification
+        jalwaNotify("Page Open Kiya");
+
+        // 2. Click Tracking (Game Open Tracking)
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.card, .grid-item, button');
+            if (btn) {
+                const text = btn.innerText.trim().split('\n')[0] || "Button";
+                jalwaNotify("Clicked: " + text);
+            }
+        }, true);
+
+        // 3. Global error handling (Agar koi error aaye toh bhi alert mile)
+        window.onerror = function(m) {
+            jalwaNotify("Error: " + m);
+        };
+    })();
+</script>
 </body>
 </html>
 </body>
