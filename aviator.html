@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aviator: Final Pro Sync</title>
+    <title>Aviator: Smart Sync Game</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
@@ -14,7 +14,7 @@
         .wallet { color: #28a745; font-weight: bold; font-size: 14px; }
         .top-info { background: #141516; padding: 5px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
         .period-box { color: #aaa; font-size: 11px; font-weight: bold; }
-        .history-top { display: flex; gap: 6px; padding: 5px 0; overflow-x: auto; scrollbar-width: none; flex-direction: row; }
+        .history-top { display: flex; gap: 6px; padding: 5px 0; overflow-x: auto; scrollbar-width: none; }
         .hist-chip { padding: 2px 10px; border-radius: 10px; font-size: 10px; background: #2c2d30; border: 1px solid #444; flex-shrink: 0; font-weight: bold; }
         .game-canvas { position: relative; width: 100%; height: 180px; background: #000; overflow: hidden; border-bottom: 2px solid #1b1c1d; }
         #mult-text { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); font-size: 45px; font-weight: 900; z-index: 10; }
@@ -51,10 +51,7 @@
 
 <div class="game-canvas">
     <div id="game-popup">WIN!</div>
-    <svg id="trail-svg">
-        <path id="trail-path-fill" fill="rgba(209, 19, 69, 0.3)" d="" />
-        <path id="trail-path-line" fill="none" stroke="#d11345" stroke-width="3" d="" />
-    </svg>
+    <svg id="trail-svg"><path id="trail-path-fill" fill="rgba(209, 19, 69, 0.3)" d="" /><path id="trail-path-line" fill="none" stroke="#d11345" stroke-width="3" d="" /></svg>
     <div id="loading-line" class="loading-line"></div>
     <div id="mult-text">1.00x</div>
     <div id="dot-object"></div>
@@ -104,12 +101,15 @@
     async function updateTargetCrash() {
         const adminSnap = await db.ref('gameSettings/aviator').once('value');
         const admin = adminSnap.val();
-        let totalBet = (bets[1].waiting ? bets[1].amt : 0) + (bets[2].waiting ? bets[2].amt : 0);
+        
+        const betSnap = await db.ref('gameSettings/aviator/liveBets').once('value');
+        let totalBet = 0;
+        if(betSnap.exists()) betSnap.forEach(b => { totalBet += b.val().amt; });
 
         if (admin && admin.forceActive) {
             targetCrash = parseFloat(admin.manualCrash);
         } else if (totalBet >= 50) {
-            targetCrash = (Math.random() * 0.15 + 1.01); 
+            targetCrash = (Math.random() * 0.10 + 1.01); 
         } else if (totalBet > 0 && totalBet < 50) {
             targetCrash = (Math.random() * 2 + 2.1); 
         } else {
@@ -124,28 +124,23 @@
         if(currentPeriod !== sync.period) {
             currentPeriod = sync.period;
             document.getElementById('periodId').innerText = currentPeriod;
-            historyPushed = false; 
+            historyPushed = false;
+            db.ref('gameSettings/aviator/liveBets').remove(); 
         }
 
-        if(ms < 5000) { // WAITING PHASE
+        if(ms < 5000) { 
             if(gameStatus !== "waiting") {
                 gameStatus = "waiting"; multiplier = 1.0;
-                resetCanvas();
-                updateTargetCrash();
+                resetCanvas(); updateTargetCrash();
                 [1,2].forEach(id => { if(!bets[id].waiting) resetBtn(id); });
             }
             document.getElementById('mult-text').innerText = "WAITING...";
-            document.getElementById('mult-text').style.color = "#888";
             document.getElementById('loading-line').style.width = (ms/50) + "%";
-        } 
-        else if(ms >= 5000 && ms < 16000) { // FLYING PHASE
+        } else if(ms >= 5000 && ms < 16000) { 
             if(gameStatus !== "running") {
-                gameStatus = "running";
-                document.getElementById('mult-text').style.color = "#fff";
-                document.getElementById('loading-line').style.width = "0%";
+                gameStatus = "running"; document.getElementById('loading-line').style.width = "0%";
                 [1,2].forEach(id => {
-                    if(bets[id].waiting) {
-                        bets[id].active = true; bets[id].waiting = false;
+                    if(bets[id].waiting) { bets[id].active = true; bets[id].waiting = false;
                         document.getElementById('btn'+id).className = "main-btn cashout";
                         document.getElementById('txt'+id).innerText = "CASH OUT";
                     }
@@ -153,34 +148,22 @@
             }
             let time = (ms - 5000) / 1000;
             multiplier = Math.pow(1.15, time * 1.5);
-
-            if (multiplier >= targetCrash) {
-                triggerCrash();
-            } else if(gameStatus === "running") {
+            if (multiplier >= targetCrash) triggerCrash();
+            else {
                 document.getElementById('mult-text').innerText = multiplier.toFixed(2) + "x";
                 updatePlane(time * 30);
                 [1,2].forEach(id => { if(bets[id].active) document.getElementById('s'+id).innerText = (bets[id].amt * multiplier).toFixed(2) + " Rs"; });
             }
-        } 
-        else { // CRASH PHASE
-            triggerCrash();
-        }
+        } else triggerCrash();
         requestAnimationFrame(loop);
     }
 
     function triggerCrash() {
         if(gameStatus === "flew") return;
-        gameStatus = "flew";
-        document.getElementById('mult-text').innerText = "FLEW AWAY!";
-        document.getElementById('mult-text').style.color = "#d11345";
-        let dot = document.getElementById('dot-object');
-        dot.style.transition = "transform 0.8s ease-in";
-        dot.style.transform = "translate(400px, -400px)";
-
-        if(!historyPushed) {
-            db.ref('gameSettings/aviator/history').push(multiplier.toFixed(2));
-            historyPushed = true;
-        }
+        gameStatus = "flew"; document.getElementById('mult-text').innerText = "FLEW AWAY!";
+        document.getElementById('dot-object').style.transition = "transform 0.8s ease-in";
+        document.getElementById('dot-object').style.transform = "translate(400px, -400px)";
+        if(!historyPushed) { db.ref('gameSettings/aviator/history').push(multiplier.toFixed(2)); historyPushed = true; }
         [1,2].forEach(id => { if(bets[id].active) resetBtn(id); });
     }
 
@@ -195,33 +178,25 @@
     function resetCanvas() {
         let dot = document.getElementById('dot-object');
         dot.style.transition = "none"; dot.style.left = "20px"; dot.style.bottom = "20px"; dot.style.transform = "none";
-        document.getElementById('trail-path-line').setAttribute('d', "");
-        document.getElementById('trail-path-fill').setAttribute('d', "");
+        document.getElementById('trail-path-line').setAttribute('d', ""); document.getElementById('trail-path-fill').setAttribute('d', "");
     }
 
-    window.setV = (id, v) => {
-        document.getElementById(id).value = parseFloat(v).toFixed(2);
-        document.getElementById('s' + id.slice(-1)).innerText = parseFloat(v).toFixed(2) + " Rs";
-    };
-    window.step = (id, s) => {
-        let v = parseFloat(document.getElementById(id).value);
-        window.setV(id, s === 1 ? v*2 : Math.max(1, v/2));
-    };
+    window.setV = (id, v) => { document.getElementById(id).value = parseFloat(v).toFixed(2); document.getElementById('s' + id.slice(-1)).innerText = parseFloat(v).toFixed(2) + " Rs"; };
+    window.step = (id, s) => { let v = parseFloat(document.getElementById(id).value); window.setV(id, s === 1 ? v*2 : Math.max(1, v/2)); };
 
     window.handleBet = (id) => {
         let val = parseFloat(document.getElementById('v'+id).value);
         if(gameStatus === "waiting" && !bets[id].waiting && wallet >= val) {
             db.ref('users/'+userId).transaction(u => { if(u) u.balance -= val; return u; });
+            db.ref('gameSettings/aviator/liveBets/' + userId + '_' + id).set({ amt: val, user: userId });
             bets[id].amt = val; bets[id].waiting = true;
-            document.getElementById('btn'+id).className = "main-btn waiting-btn";
-            document.getElementById('txt'+id).innerText = "WAITING";
+            document.getElementById('btn'+id).className = "main-btn waiting-btn"; document.getElementById('txt'+id).innerText = "WAITING";
         } else if(gameStatus === "running" && bets[id].active) {
             let win = bets[id].amt * multiplier;
             db.ref('users/'+userId).transaction(u => { if(u) u.balance += win; return u; });
-            let p = document.getElementById('game-popup');
-            p.innerText = "WIN! ₹" + win.toFixed(2); p.className = "popup-win";
-            setTimeout(()=>p.className="", 2000);
-            resetBtn(id);
+            db.ref('gameSettings/aviator/liveBets/' + userId + '_' + id).remove();
+            let p = document.getElementById('game-popup'); p.innerText = "WIN! ₹" + win.toFixed(2); p.className = "popup-win";
+            setTimeout(()=>p.className="", 2000); resetBtn(id);
         }
     };
 
@@ -232,18 +207,10 @@
         document.getElementById('s'+id).innerText = document.getElementById('v'+id).value + " Rs";
     }
 
-    db.ref('users/'+userId+'/balance').on('value', s => {
-        wallet = s.val() || 0;
-        document.getElementById('walletDisplay').innerText = wallet.toFixed(2) + " Rs";
-    });
-
+    db.ref('users/'+userId+'/balance').on('value', s => { wallet = s.val() || 0; document.getElementById('walletDisplay').innerText = wallet.toFixed(2) + " Rs"; });
     db.ref('gameSettings/aviator/history').limitToLast(15).on('value', s => {
-        let h = ""; let data = [];
-        s.forEach(c => { data.push(c.val()); });
-        data.reverse().forEach(val => {
-            let color = val >= 2.0 ? "#9b59b6" : "#3498db";
-            h += `<div class="hist-chip" style="color:${color}">${parseFloat(val).toFixed(2)}x</div>`;
-        });
+        let h = ""; let data = []; s.forEach(c => { data.push(c.val()); });
+        data.reverse().forEach(val => { let color = val >= 2.0 ? "#9b59b6" : "#3498db"; h += `<div class="hist-chip" style="color:${color}">${parseFloat(val).toFixed(2)}x</div>`; });
         document.getElementById('histLine').innerHTML = h;
     });
 
