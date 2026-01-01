@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aviator: Pro</title>
+    <title>Aviator: Final Pro Sync</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
@@ -12,20 +12,16 @@
         .header { display: flex; justify-content: space-between; padding: 10px 15px; background: #1b1c1d; align-items: center; border-bottom: 1px solid #333; }
         .logo { color: #d11345; font-size: 18px; font-weight: 900; font-style: italic; }
         .wallet { color: #28a745; font-weight: bold; font-size: 14px; }
-        
-        /* Period & History */
         .top-info { background: #141516; padding: 5px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
         .period-box { color: #aaa; font-size: 11px; font-weight: bold; }
-        .history-top { display: flex; gap: 6px; padding: 5px 0; overflow-x: auto; scrollbar-width: none; }
-        .hist-chip { padding: 2px 10px; border-radius: 10px; font-size: 10px; background: #2c2d30; color: #9b59b6; border: 1px solid #444; flex-shrink: 0; }
-        
+        .history-top { display: flex; gap: 6px; padding: 5px 0; overflow-x: auto; scrollbar-width: none; flex-direction: row; }
+        .hist-chip { padding: 2px 10px; border-radius: 10px; font-size: 10px; background: #2c2d30; border: 1px solid #444; flex-shrink: 0; font-weight: bold; }
         .game-canvas { position: relative; width: 100%; height: 180px; background: #000; overflow: hidden; border-bottom: 2px solid #1b1c1d; }
         #mult-text { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); font-size: 45px; font-weight: 900; z-index: 10; }
-        #dot-object { position: absolute; bottom: 20px; left: 20px; width: 12px; height: 12px; background: #ff0040; border-radius: 50%; z-index: 25; box-shadow: 0 0 15px #ff0040; }
+        #dot-object { position: absolute; bottom: 20px; left: 20px; width: 14px; height: 14px; background: #ff0040; border-radius: 50%; z-index: 25; box-shadow: 0 0 15px #ff0040; }
         #trail-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; }
         .loading-line { position: absolute; bottom: 0; left: 0; height: 3px; background: #d11345; width: 0%; z-index: 30; }
-
-        .content-area { flex-grow: 1; overflow-y: auto; background: #000; padding: 8px; }
+        .content-area { flex-grow: 1; padding: 8px; background: #000; overflow-y: auto; }
         .bet-card { background: #1b1c1d; border-radius: 12px; padding: 10px; border: 1px solid #333; margin-bottom: 8px; }
         .controls { display: flex; gap: 8px; height: 85px; }
         .input-part { flex: 1.5; display: flex; flex-direction: column; gap: 6px; }
@@ -34,19 +30,11 @@
         .stepper input { background: none; border: none; color: #fff; width: 60px; text-align: center; font-size: 14px; font-weight: bold; outline: none; }
         .chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
         .chips div { background: #2c2d30; padding: 6px 0; border-radius: 6px; font-size: 10px; text-align: center; font-weight: bold; border: 1px solid #444; cursor: pointer; }
-        
-        .main-btn { flex: 1.2; background: #28a745; border-radius: 12px; border: none; color: #fff; font-weight: 900; font-size: 14px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 0.2s; }
+        .main-btn { flex: 1.2; background: #28a745; border-radius: 12px; border: none; color: #fff; font-weight: 900; font-size: 14px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .cashout { background: #ff9800 !important; }
         .waiting-btn { background: #555 !important; }
-
-        #game-popup { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%) scale(0); z-index: 100; padding: 10px 30px; border-radius: 25px; font-weight: 900; transition: 0.3s; color: #fff; font-size: 20px; }
+        #game-popup { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%) scale(0); z-index: 100; padding: 10px 30px; border-radius: 25px; font-weight: 900; transition: 0.3s; color: #fff; font-size: 20px; text-align: center; }
         .popup-win { background: rgba(40, 167, 69, 0.9); transform: translate(-50%, -50%) scale(1) !important; }
-        .popup-loss { background: rgba(209, 19, 69, 0.9); transform: translate(-50%, -50%) scale(1) !important; }
-
-        .my-history { background: #1b1c1d; border-radius: 12px; padding: 10px; border: 1px solid #333; margin-top: 5px; }
-        .hist-table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: left; margin-top: 5px; }
-        .hist-table th { color: #555; border-bottom: 1px solid #222; padding-bottom: 5px; }
-        .hist-table td { padding: 8px 0; border-bottom: 1px solid #222; }
     </style>
 </head>
 <body>
@@ -57,8 +45,8 @@
 </div>
 
 <div class="top-info">
-    <div class="period-box">#<span id="periodId">000000</span></div>
-    <div class="history-top" id="histLine"></div>
+    <div class="period-box">#<span id="periodId">000000000000</span></div>
+    <div id="histLine" class="history-top"></div>
 </div>
 
 <div class="game-canvas">
@@ -73,37 +61,23 @@
 </div>
 
 <div class="content-area">
-    <div class="betting-area">
-        <div class="bet-card">
-            <div class="controls">
-                <div class="input-part">
-                    <div class="stepper">
-                        <button onclick="window.step('v1',-1)">-</button>
-                        <input id="v1" value="10.00" readonly>
-                        <button onclick="window.step('v1',1)">+</button>
-                    </div>
-                    <div class="chips"><div onclick="window.setV('v1',10)">10</div><div onclick="window.setV('v1',20)">20</div><div onclick="window.setV('v1',50)">50</div><div onclick="window.setV('v1',100)">100</div></div>
-                </div>
-                <button id="btn1" class="main-btn" onclick="window.handleBet(1)"><span id="txt1">BET</span><br><span id="s1" style="font-size: 10px;">10.00 Rs</span></button>
+    <div class="bet-card">
+        <div class="controls">
+            <div class="input-part">
+                <div class="stepper"><button onclick="window.step('v1',-1)">-</button><input id="v1" value="10.00" readonly><button onclick="window.step('v1',1)">+</button></div>
+                <div class="chips"><div onclick="window.setV('v1',10)">10</div><div onclick="window.setV('v1',50)">50</div><div onclick="window.setV('v1',100)">100</div><div onclick="window.setV('v1',500)">500</div></div>
             </div>
-        </div>
-        <div class="bet-card">
-            <div class="controls">
-                <div class="input-part">
-                    <div class="stepper">
-                        <button onclick="window.step('v2',-1)">-</button>
-                        <input id="v2" value="10.00" readonly>
-                        <button onclick="window.step('v2',1)">+</button>
-                    </div>
-                    <div class="chips"><div onclick="window.setV('v2',10)">10</div><div onclick="window.setV('v2',20)">20</div><div onclick="window.setV('v2',50)">50</div><div onclick="window.setV('v2',100)">100</div></div>
-                </div>
-                <button id="btn2" class="main-btn" onclick="window.handleBet(2)"><span id="txt2">BET</span><br><span id="s2" style="font-size: 10px;">10.00 Rs</span></button>
-            </div>
+            <button id="btn1" class="main-btn" onclick="window.handleBet(1)"><span id="txt1">BET</span><br><span id="s1" style="font-size: 10px;">10.00 Rs</span></button>
         </div>
     </div>
-    <div class="my-history">
-        <p style="font-size: 12px; color: #888; font-weight: bold;">MY BETS</p>
-        <table class="hist-table"><tbody id="myHistBody"></tbody></table>
+    <div class="bet-card">
+        <div class="controls">
+            <div class="input-part">
+                <div class="stepper"><button onclick="window.step('v2',-1)">-</button><input id="v2" value="10.00" readonly><button onclick="window.step('v2',1)">+</button></div>
+                <div class="chips"><div onclick="window.setV('v2',10)">10</div><div onclick="window.setV('v2',50)">50</div><div onclick="window.setV('v2',100)">100</div><div onclick="window.setV('v2',500)">500</div></div>
+            </div>
+            <button id="btn2" class="main-btn" onclick="window.handleBet(2)"><span id="txt2">BET</span><br><span id="s2" style="font-size: 10px;">10.00 Rs</span></button>
+        </div>
     </div>
 </div>
 
@@ -113,136 +87,167 @@
     const db = firebase.database();
     const userId = localStorage.getItem('jalwa_user_phone') || "Guest";
 
-    let wallet = 0, multiplier = 1.0, gameStatus = "waiting", crashAt = 2.0;
+    let wallet = 0, multiplier = 1.0, gameStatus = "waiting", currentPeriod = "", serverOffset = 0;
+    let targetCrash = 2.0, historyPushed = false;
     let bets = { 1: { active: false, amt: 0, waiting: false }, 2: { active: false, amt: 0, waiting: false } };
-    let topStrip = JSON.parse(localStorage.getItem('avi_strip')) || ['1.2x', '2.5x'];
+
+    db.ref(".info/serverTimeOffset").on("value", s => serverOffset = s.val() || 0);
+
+    function getSync() {
+        const now = new Date(Date.now() + serverOffset);
+        const dateStr = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0');
+        const totalSec = (now.getHours()*3600) + (now.getMinutes()*60) + now.getSeconds();
+        const cycle = 20; 
+        return { period: dateStr + String(Math.floor(totalSec/cycle)).padStart(4,'0'), ms: (totalSec % cycle) * 1000 + now.getMilliseconds() };
+    }
+
+    async function updateTargetCrash() {
+        const adminSnap = await db.ref('gameSettings/aviator').once('value');
+        const admin = adminSnap.val();
+        let totalBet = (bets[1].waiting ? bets[1].amt : 0) + (bets[2].waiting ? bets[2].amt : 0);
+
+        if (admin && admin.forceActive) {
+            targetCrash = parseFloat(admin.manualCrash);
+        } else if (totalBet >= 50) {
+            targetCrash = (Math.random() * 0.15 + 1.01); 
+        } else if (totalBet > 0 && totalBet < 50) {
+            targetCrash = (Math.random() * 2 + 2.1); 
+        } else {
+            targetCrash = (Math.random() * 3 + 1.5);
+        }
+    }
+
+    function loop() {
+        const sync = getSync();
+        const ms = sync.ms;
+
+        if(currentPeriod !== sync.period) {
+            currentPeriod = sync.period;
+            document.getElementById('periodId').innerText = currentPeriod;
+            historyPushed = false; 
+        }
+
+        if(ms < 5000) { // WAITING PHASE
+            if(gameStatus !== "waiting") {
+                gameStatus = "waiting"; multiplier = 1.0;
+                resetCanvas();
+                updateTargetCrash();
+                [1,2].forEach(id => { if(!bets[id].waiting) resetBtn(id); });
+            }
+            document.getElementById('mult-text').innerText = "WAITING...";
+            document.getElementById('mult-text').style.color = "#888";
+            document.getElementById('loading-line').style.width = (ms/50) + "%";
+        } 
+        else if(ms >= 5000 && ms < 16000) { // FLYING PHASE
+            if(gameStatus !== "running") {
+                gameStatus = "running";
+                document.getElementById('mult-text').style.color = "#fff";
+                document.getElementById('loading-line').style.width = "0%";
+                [1,2].forEach(id => {
+                    if(bets[id].waiting) {
+                        bets[id].active = true; bets[id].waiting = false;
+                        document.getElementById('btn'+id).className = "main-btn cashout";
+                        document.getElementById('txt'+id).innerText = "CASH OUT";
+                    }
+                });
+            }
+            let time = (ms - 5000) / 1000;
+            multiplier = Math.pow(1.15, time * 1.5);
+
+            if (multiplier >= targetCrash) {
+                triggerCrash();
+            } else if(gameStatus === "running") {
+                document.getElementById('mult-text').innerText = multiplier.toFixed(2) + "x";
+                updatePlane(time * 30);
+                [1,2].forEach(id => { if(bets[id].active) document.getElementById('s'+id).innerText = (bets[id].amt * multiplier).toFixed(2) + " Rs"; });
+            }
+        } 
+        else { // CRASH PHASE
+            triggerCrash();
+        }
+        requestAnimationFrame(loop);
+    }
+
+    function triggerCrash() {
+        if(gameStatus === "flew") return;
+        gameStatus = "flew";
+        document.getElementById('mult-text').innerText = "FLEW AWAY!";
+        document.getElementById('mult-text').style.color = "#d11345";
+        let dot = document.getElementById('dot-object');
+        dot.style.transition = "transform 0.8s ease-in";
+        dot.style.transform = "translate(400px, -400px)";
+
+        if(!historyPushed) {
+            db.ref('gameSettings/aviator/history').push(multiplier.toFixed(2));
+            historyPushed = true;
+        }
+        [1,2].forEach(id => { if(bets[id].active) resetBtn(id); });
+    }
+
+    function updatePlane(f) {
+        let x = 20 + (f * 2.5), y = 20 + (Math.pow(f / 15, 2.3));
+        let dot = document.getElementById('dot-object');
+        dot.style.left = Math.min(x, 280) + "px"; dot.style.bottom = Math.min(y, 160) + "px";
+        document.getElementById('trail-path-line').setAttribute('d', `M 20 160 Q 80 160 ${x} ${180-y}`);
+        document.getElementById('trail-path-fill').setAttribute('d', `M 20 180 Q 80 180 ${x} ${180-y} L ${x} 180 Z`);
+    }
+
+    function resetCanvas() {
+        let dot = document.getElementById('dot-object');
+        dot.style.transition = "none"; dot.style.left = "20px"; dot.style.bottom = "20px"; dot.style.transform = "none";
+        document.getElementById('trail-path-line').setAttribute('d', "");
+        document.getElementById('trail-path-fill').setAttribute('d', "");
+    }
 
     window.setV = (id, v) => {
         document.getElementById(id).value = parseFloat(v).toFixed(2);
         document.getElementById('s' + id.slice(-1)).innerText = parseFloat(v).toFixed(2) + " Rs";
     };
-
     window.step = (id, s) => {
-        let curr = parseFloat(document.getElementById(id).value);
-        window.setV(id, s === 1 ? curr * 2 : Math.max(1, curr / 2));
+        let v = parseFloat(document.getElementById(id).value);
+        window.setV(id, s === 1 ? v*2 : Math.max(1, v/2));
     };
-
-    db.ref('users/' + userId).on('value', snap => {
-        wallet = snap.val()?.balance || 0;
-        document.getElementById('walletDisplay').innerText = wallet.toFixed(2) + " Rs";
-    });
-
-    function initGame() {
-        renderTopStrip();
-        // Period ID Update
-        document.getElementById('periodId').innerText = Math.floor(Math.random() * 900000 + 100000);
-        
-        gameStatus = "waiting"; multiplier = 1.0;
-        document.getElementById('mult-text').innerText = "WAITING...";
-        document.getElementById('mult-text').style.color = "#888";
-        let dot = document.getElementById('dot-object');
-        dot.style.transition = "none"; dot.style.left = "20px"; dot.style.bottom = "20px"; dot.style.transform = "none";
-        document.getElementById('trail-path-line').setAttribute('d', "");
-        document.getElementById('trail-path-fill').setAttribute('d', "");
-
-        let start = Date.now(), dur = 4000;
-        let t = setInterval(() => {
-            let elap = Date.now() - start;
-            document.getElementById('loading-line').style.width = (elap / dur * 100) + "%";
-            if(elap >= dur) { clearInterval(t); startGame(); }
-        }, 30);
-    }
-
-    async function startGame() {
-        gameStatus = "running";
-        document.getElementById('mult-text').style.color = "#fff";
-        
-        const adminSnap = await db.ref('gameSettings/aviator').once('value');
-        const adminData = adminSnap.val();
-        crashAt = (adminData && adminData.forceActive) ? parseFloat(adminData.manualCrash) : (Math.random() * 2 + 1.1).toFixed(2);
-
-        [1,2].forEach(id => {
-            if(bets[id].waiting) {
-                bets[id].active = true; bets[id].waiting = false;
-                document.getElementById('btn'+id).className = "main-btn cashout";
-                document.getElementById('txt'+id).innerText = "CASH OUT";
-            }
-        });
-
-        let frame = 0;
-        let loop = setInterval(() => {
-            if(gameStatus !== "running") { clearInterval(loop); return; }
-            frame++;
-            multiplier += (multiplier * 0.012); 
-            document.getElementById('mult-text').innerText = multiplier.toFixed(2) + "x";
-
-            // Live Bet Value Growth
-            [1,2].forEach(id => {
-                if(bets[id].active) {
-                    document.getElementById('s'+id).innerText = (bets[id].amt * multiplier).toFixed(2) + " Rs";
-                }
-            });
-
-            let x = 20 + (frame * 2.5), y = 20 + (Math.pow(frame / 12, 2.2));
-            let dot = document.getElementById('dot-object');
-            dot.style.left = Math.min(x, 280) + "px"; dot.style.bottom = Math.min(y, 160) + "px";
-            document.getElementById('trail-path-line').setAttribute('d', `M 20 160 Q 80 160 ${x} ${180-y}`);
-            document.getElementById('trail-path-fill').setAttribute('d', `M 20 180 Q 80 180 ${x} ${180-y} L ${x} 180 Z`);
-
-            if(multiplier >= crashAt) {
-                gameStatus = "flew";
-                document.getElementById('mult-text').innerText = "FLEW AWAY!";
-                document.getElementById('mult-text').style.color = "#d11345";
-                dot.style.transition = "transform 0.6s ease-in"; dot.style.transform = "translate(400px, -400px)";
-                
-                [1,2].forEach(id => {
-                    if(bets[id].active) { showGamePopup("LOSS"); addHistory(bets[id].amt, "Loss", 0); }
-                    resetBtn(id);
-                });
-                saveStrip(multiplier.toFixed(2));
-                setTimeout(initGame, 3000);
-            }
-        }, 50);
-    }
 
     window.handleBet = (id) => {
         let val = parseFloat(document.getElementById('v'+id).value);
         if(gameStatus === "waiting" && !bets[id].waiting && wallet >= val) {
-            wallet -= val; db.ref('users/' + userId).update({ balance: wallet });
+            db.ref('users/'+userId).transaction(u => { if(u) u.balance -= val; return u; });
             bets[id].amt = val; bets[id].waiting = true;
             document.getElementById('btn'+id).className = "main-btn waiting-btn";
             document.getElementById('txt'+id).innerText = "WAITING";
         } else if(gameStatus === "running" && bets[id].active) {
             let win = bets[id].amt * multiplier;
-            wallet += win; db.ref('users/' + userId).update({ balance: wallet });
-            showGamePopup("WIN: ₹" + win.toFixed(2));
-            addHistory(bets[id].amt, multiplier.toFixed(2) + "x", win.toFixed(2));
+            db.ref('users/'+userId).transaction(u => { if(u) u.balance += win; return u; });
+            let p = document.getElementById('game-popup');
+            p.innerText = "WIN! ₹" + win.toFixed(2); p.className = "popup-win";
+            setTimeout(()=>p.className="", 2000);
             resetBtn(id);
         }
     };
 
-    function showGamePopup(msg) {
-        let p = document.getElementById('game-popup');
-        p.innerText = msg;
-        p.className = msg.includes("WIN") ? "popup-win" : "popup-loss";
-        setTimeout(() => p.className = "", 2000);
-    }
-
     function resetBtn(id) {
-        bets[id].active = false; bets[id].waiting = false; bets[id].amt = 0;
+        bets[id].active = false; bets[id].waiting = false;
         document.getElementById('btn'+id).className = "main-btn";
         document.getElementById('txt'+id).innerText = "BET";
         document.getElementById('s'+id).innerText = document.getElementById('v'+id).value + " Rs";
     }
 
-    function addHistory(bet, mult, win) {
-        let row = `<tr><td>${bet}</td><td>${mult}</td><td style="color:${win>0?'#28a745':'#d11345'}">${win>0?'+'+win:'0.00'}</td></tr>`;
-        document.getElementById('myHistBody').insertAdjacentHTML('afterbegin', row);
-    }
+    db.ref('users/'+userId+'/balance').on('value', s => {
+        wallet = s.val() || 0;
+        document.getElementById('walletDisplay').innerText = wallet.toFixed(2) + " Rs";
+    });
 
-    function renderTopStrip() { document.getElementById('histLine').innerHTML = topStrip.map(m => `<div class="hist-chip">${m}</div>`).join(''); }
-    function saveStrip(m) { topStrip.unshift(m + 'x'); topStrip = topStrip.slice(0,10); localStorage.setItem('avi_strip', JSON.stringify(topStrip)); }
-    window.onload = initGame;
+    db.ref('gameSettings/aviator/history').limitToLast(15).on('value', s => {
+        let h = ""; let data = [];
+        s.forEach(c => { data.push(c.val()); });
+        data.reverse().forEach(val => {
+            let color = val >= 2.0 ? "#9b59b6" : "#3498db";
+            h += `<div class="hist-chip" style="color:${color}">${parseFloat(val).toFixed(2)}x</div>`;
+        });
+        document.getElementById('histLine').innerHTML = h;
+    });
+
+    requestAnimationFrame(loop);
 </script>
 </body>
 </html>
