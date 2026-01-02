@@ -3,166 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Jalwa Pro Wallet</title>
+    <title>Jalwa Pro - Wallet</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Firebase JS SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         :root { 
-            --bg-dark: #06091b; 
-            --card-bg: #10142d; 
-            --cyan: #00ffca; 
-            --text-gray: #7e87a8;
-            --gradient-main: linear-gradient(135deg, #2af598 0%, #009efd 100%);
+            --bg: #0a0e17; 
+            --card-bg: #161d2b; 
+            --primary: #ffcc00; 
+            --text-gray: #a4b0be;
+            --success: #2ecc71;
+            --danger: #ff4757;
         }
 
         body { 
-            margin: 0; background: var(--bg-dark); 
-            font-family: 'Segoe UI', Roboto, sans-serif; color: white; 
+            margin: 0; background: var(--bg); 
+            font-family: 'Poppins', sans-serif; color: white; 
+            overflow-x: hidden;
         }
 
-        .app-container { width: 100%; max-width: 480px; margin: auto; min-height: 100vh; padding-bottom: 80px; }
+        .app-container { width: 100%; max-width: 480px; margin: auto; min-height: 100vh; padding-bottom: 90px; }
 
-        /* --- WALLET HEADER --- */
-        .wallet-header {
-            padding: 30px 20px; text-align: center;
-            background: linear-gradient(180deg, #161d3d 0%, var(--bg-dark) 100%);
-        }
-        .total-balance-box i { font-size: 24px; color: var(--cyan); margin-bottom: 10px; }
-        .balance-amount { font-size: 36px; font-weight: bold; margin: 5px 0; }
-        .balance-label { color: var(--text-gray); font-size: 14px; letter-spacing: 1px; }
-
-        /* --- STATS CARDS (Deposit/Withdrawal Summary) --- */
-        .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 15px; margin-top: -20px; }
-        .stat-card {
-            background: var(--card-bg); padding: 15px; border-radius: 20px;
-            border: 1px solid #1f2855; text-align: center;
-        }
-        .stat-card span { display: block; font-size: 12px; color: var(--text-gray); margin-bottom: 5px; }
-        .stat-card b { font-size: 18px; color: #fff; }
-
-        /* --- MAIN ACTION BUTTON --- */
-        .action-container { padding: 20px 15px; }
-        .main-btn {
-            width: 100%; background: var(--gradient-main); color: #000;
-            border: none; padding: 15px; border-radius: 50px;
-            font-size: 16px; font-weight: bold; cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0,255,202,0.2);
-        }
-
-        /* --- GRID MENU (Icons like screenshot) --- */
-        .wallet-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-            padding: 15px; margin-top: 10px;
-        }
-        .grid-item { text-align: center; cursor: pointer; }
-        .icon-box {
-            width: 55px; height: 55px; margin: 0 auto 8px;
-            border-radius: 18px; display: flex; align-items: center; justify-content: center;
-            font-size: 22px; transition: 0.3s;
-        }
-        .grid-item span { font-size: 11px; color: var(--text-gray); font-weight: 500; }
+        /* --- HEADER --- */
+        .header-bar { padding: 20px; display: flex; align-items: center; justify-content: space-between; background: #1e272e; }
         
-        /* Icon Colors */
-        .bg-deposit { background: rgba(255, 193, 7, 0.15); color: #ffc107; }
-        .bg-withdraw { background: rgba(33, 150, 243, 0.15); color: #2196f3; }
-        .bg-d-hist { background: rgba(233, 30, 99, 0.15); color: #e91e63; }
-        .bg-w-hist { background: rgba(76, 175, 80, 0.15); color: #4caf50; }
-
-        .grid-item:active .icon-box { transform: scale(0.9); }
-
-        /* --- EXTRA INFO --- */
-        .extra-section { padding: 0 15px; display: flex; gap: 15px; margin-top: 10px; }
-        .mini-card {
-            flex: 1; background: var(--card-bg); padding: 20px; 
-            border-radius: 20px; border: 1px solid #1f2855; text-align: center;
+        /* --- WALLET TOP CARD --- */
+        .wallet-card {
+            margin: 15px; padding: 30px 20px; text-align: center;
+            background: linear-gradient(180deg, #1e272e 0%, var(--bg) 100%);
+            border-radius: 20px; border: 1px solid rgba(255, 204, 0, 0.1);
         }
-        .mini-card i { font-size: 20px; color: var(--text-gray); margin-bottom: 10px; opacity: 0.5; }
+        .balance-label { color: var(--text-gray); font-size: 13px; letter-spacing: 1px; font-weight: 600; text-transform: uppercase; }
+        .balance-amount { font-size: 38px; font-weight: 800; color: var(--primary); margin: 10px 0; }
+
+        .refresh-btn { background: none; border: 1px solid rgba(255,204,0,0.3); color: var(--primary); padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; }
+
+        /* --- STATS --- */
+        .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 15px; margin-top: -10px; }
+        .stat-card {
+            background: var(--card-bg); padding: 15px; border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.05); text-align: center;
+        }
+        .stat-card span { display: block; font-size: 11px; color: var(--text-gray); margin-bottom: 5px; }
+        .stat-card b { font-size: 16px; color: #fff; }
+
+        /* --- GRID MENU --- */
+        .wallet-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 25px 15px; }
+        .grid-item { text-align: center; cursor: pointer; }
+        .icon-box { width: 50px; height: 50px; margin: 0 auto 8px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 20px; background: rgba(255, 255, 255, 0.05); }
+        .grid-item span { font-size: 10px; color: var(--text-gray); font-weight: 600; display: block; line-height: 1.2; }
+        
+        .c-deposit { color: #ffcc00; }
+        .c-withdraw { color: #3498db; }
+        .c-hist { color: #e74c3c; }
+        .c-safe { color: #2ecc71; }
+
+        /* --- RECENT HISTORY --- */
+        .history-section { padding: 0 15px; margin-top: 10px; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .section-header h3 { font-size: 16px; font-weight: bold; margin: 0; color: var(--primary); }
+        .section-header a { font-size: 12px; color: var(--text-gray); text-decoration: none; }
+
+        .hist-list { background: var(--card-bg); border-radius: 15px; overflow: hidden; border: 1px solid rgba(255,255,255,0.03); min-height: 50px;}
+        .hist-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .hist-left { display: flex; align-items: center; gap: 12px; }
+        .hist-icon { width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; background: rgba(255,255,255,0.05); }
+        .hist-info p { margin: 0; font-size: 14px; font-weight: 600; }
+        .hist-info span { font-size: 10px; color: var(--text-gray); }
+        .hist-status { font-size: 9px; font-weight: bold; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; margin-top: 4px; display: inline-block;}
+
+        .no-data { text-align: center; padding: 30px; color: var(--text-gray); font-size: 12px; }
 
         /* --- BOTTOM NAV --- */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: #10142d; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #1f2855; }
-        .nav-item { text-align: center; color: var(--text-gray); font-size: 11px; cursor: pointer; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: #161d2b; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.05); }
+        .nav-item { text-align: center; color: var(--text-gray); font-size: 11px; flex: 1; text-decoration: none;}
         .nav-item i { font-size: 22px; margin-bottom: 4px; display: block; }
-        .nav-item.active { color: var(--cyan); }
+        .nav-item.active { color: var(--primary); }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <div style="padding: 15px; display: flex; align-items: center; gap: 15px;">
-        <i class="fas fa-chevron-left" onclick="history.back()"></i>
+    <div class="header-bar">
+        <i class="fas fa-arrow-left" onclick="location.href='index.html'" style="color: var(--primary);"></i>
         <b style="font-size: 18px;">Wallet</b>
+        <i class="fas fa-headset" style="color: var(--text-gray);"></i>
     </div>
 
-    <div class="wallet-header">
-        <div class="total-balance-box">
-            <i class="fas fa-wallet"></i>
-            <div class="balance-label">TOTAL BALANCE</div>
-            <div class="balance-amount">₹<span id="mainBalance">128549.68</span></div>
-        </div>
+    <div class="wallet-card">
+        <div class="balance-label">Main Balance</div>
+        <div class="balance-amount">₹<span id="mainBalance">0.00</span></div>
+        <button class="refresh-btn" onclick="location.reload()"><i class="fas fa-sync-alt"></i> Refresh</button>
     </div>
 
     <div class="stats-row">
         <div class="stat-card">
             <span>Total Deposit</span>
-            <b>₹50,000.00</b>
+            <b id="totalDep">₹0.00</b>
         </div>
         <div class="stat-card">
             <span>Total Withdrawal</span>
-            <b>₹25,000.00</b>
+            <b id="totalWit">₹0.00</b>
         </div>
-    </div>
-
-    <div class="action-container">
-        <button class="main-btn" onclick="alert('Transferring to Main Wallet...')">Main wallet transfer</button>
     </div>
 
     <div class="wallet-grid">
         <div class="grid-item" onclick="location.href='deposit.html'">
-            <div class="icon-box bg-deposit"><i class="fas fa-coins"></i></div>
+            <div class="icon-box c-deposit"><i class="fas fa-piggy-bank"></i></div>
             <span>Deposit</span>
         </div>
         <div class="grid-item" onclick="location.href='withdraw.html'">
-            <div class="icon-box bg-withdraw"><i class="fas fa-university"></i></div>
+            <div class="icon-box c-withdraw"><i class="fas fa-wallet"></i></div>
             <span>Withdraw</span>
         </div>
-        <div class="grid-item" onclick="location.href='deposit-history.html'">
-            <div class="icon-box bg-d-hist"><i class="fas fa-receipt"></i></div>
-            <span>Deposit <br>history</span>
+        <div class="grid-item" onclick="location.href='deposithistory.html'">
+            <div class="icon-box c-hist"><i class="fas fa-receipt"></i></div>
+            <span>Deposit<br>History</span>
         </div>
         <div class="grid-item" onclick="location.href='withdraw-history.html'">
-            <div class="icon-box bg-w-hist"><i class="fas fa-history"></i></div>
-            <span>Withdraw <br>history</span>
+            <div class="icon-box c-safe"><i class="fas fa-history"></i></div>
+            <span>Withdraw<br>History</span>
         </div>
     </div>
 
-    <div class="extra-section">
-        <div class="mini-card">
-            <i class="fas fa-gamepad"></i>
-            <div style="font-size: 14px; font-weight: bold;">0.00</div>
-            <div style="font-size: 10px; color: var(--text-gray);">AR Game</div>
+    <div class="history-section">
+        <div class="section-header">
+            <h3>Recent Transactions</h3>
+            <a href="all-history.html">View All</a>
         </div>
-        <div class="mini-card">
-            <i class="fas fa-dice"></i>
-            <div style="font-size: 14px; font-weight: bold;">0.00</div>
-            <div style="font-size: 10px; color: var(--text-gray);">Lottery</div>
+        <div class="hist-list" id="recentHistory">
+            <div class="no-data">Loading records...</div>
         </div>
     </div>
 
     <div class="bottom-nav">
-        <div class="nav-item" onclick="location.href='index.html'"><i class="fas fa-house"></i>Home</div>
-        <div class="nav-item"><i class="fas fa-gift"></i>Activity</div>
-        <div class="nav-item active"><i class="fas fa-wallet"></i>Wallet</div>
-        <div class="nav-item"><i class="fas fa-user"></i>Account</div>
+        <a href="index.html" class="nav-item"><i class="fas fa-house"></i>Home</a>
+        <a href="activity.html" class="nav-item"><i class="fas fa-gift"></i>Activity</a>
+        <a href="wallet.html" class="nav-item active"><i class="fas fa-wallet"></i>Wallet</a>
+        <a href="account.html" class="nav-item"><i class="fas fa-user"></i>Account</a>
     </div>
 </div>
 
 <script>
-    // Smooth interaction for buttons
-    document.querySelectorAll('.grid-item').forEach(item => {
-        item.addEventListener('click', function() {
-            // Tum yahan koi bhi function add kar sakte ho
-            console.log("Navigating to: " + this.innerText);
+    // --- FIREBASE CONFIG ---
+    const firebaseConfig = { databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const userPhone = localStorage.getItem('jalwa_user_phone');
+
+    window.onload = function() {
+        if (!userPhone) {
+            location.href = 'login.html';
+            return;
+        }
+        fetchWalletData();
+        fetchRecentTransactions();
+    };
+
+    function fetchWalletData() {
+        // Main Balance & Totals from User Node
+        db.ref('users/' + userPhone).on('value', snap => {
+            const data = snap.val();
+            if (data) {
+                document.getElementById('mainBalance').innerText = Number(data.balance || 0).toFixed(2);
+                document.getElementById('totalDep').innerText = "₹" + Number(data.totalDeposit || 0).toFixed(2);
+                document.getElementById('totalWit').innerText = "₹" + Number(data.totalWithdraw || 0).toFixed(2);
+            }
         });
-    });
+    }
+
+    async function fetchRecentTransactions() {
+        const container = document.getElementById('recentHistory');
+        
+        try {
+            const depSnap = await db.ref('requests/deposits').orderByChild('userId').equalTo(userPhone).limitToLast(3).once('value');
+            const witSnap = await db.ref('requests/withdrawals').orderByChild('userId').equalTo(userPhone).limitToLast(3).once('value');
+
+            let combined = [];
+
+            depSnap.forEach(c => combined.push({...c.val(), type: 'Deposit'}));
+            witSnap.forEach(c => combined.push({...c.val(), type: 'Withdrawal'}));
+
+            // Sort by latest timestamp
+            combined.sort((a,b) => b.timestamp - a.timestamp);
+
+            if (combined.length === 0) {
+                container.innerHTML = `<div class="no-data">No transactions found.</div>`;
+                return;
+            }
+
+            let html = "";
+            combined.slice(0, 4).forEach(item => {
+                const isDep = item.type === 'Deposit';
+                const color = isDep ? 'var(--success)' : 'var(--danger)';
+                const icon = isDep ? 'fa-arrow-down' : 'fa-university';
+                const sign = isDep ? '+' : '-';
+
+                html += `
+                    <div class="hist-item">
+                        <div class="hist-left">
+                            <div class="hist-icon" style="color:${color}"><i class="fas ${icon}"></i></div>
+                            <div class="hist-info">
+                                <p>${item.type} ${item.status}</p>
+                                <span>${item.date || 'Just now'}</span>
+                            </div>
+                        </div>
+                        <div style="text-align:right">
+                            <b style="color:${color}">${sign}₹${Number(item.amount).toFixed(0)}</b><br>
+                            <span class="hist-status" style="background:rgba(255,255,255,0.1)">${item.status}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+        } catch (e) {
+            container.innerHTML = `<div class="no-data">Error loading history.</div>`;
+        }
+    }
 </script>
 
 </body>
