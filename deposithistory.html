@@ -9,74 +9,59 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         :root { 
-            --bg: #0a0e17; 
-            --card-bg: #161d2b; 
-            --primary: #ffcc00; 
-            --text-gray: #a4b0be;
-            --success: #2ecc71;
-            --danger: #ff4757;
+            --bg: #0a0e17; --card-bg: #161d2b; --primary: #ffcc00; 
+            --text-gray: #a4b0be; --success: #2ecc71; --danger: #ff4757;
         }
-
         body { margin: 0; background: var(--bg); font-family: 'Poppins', sans-serif; color: white; overflow-x: hidden; }
-        .app-container { width: 100%; max-width: 480px; margin: auto; min-height: 100vh; padding-bottom: 30px; }
-
-        /* --- HEADER --- */
+        .app-container { width: 100%; max-width: 480px; margin: auto; min-height: 100vh; padding-bottom: 90px; }
         .header { padding: 20px; display: flex; align-items: center; justify-content: space-between; background: #1e272e; border-bottom: 1px solid rgba(255, 204, 0, 0.2); position: sticky; top: 0; z-index: 100; }
         .header b { font-size: 18px; letter-spacing: 1px; color: var(--primary); }
-
-        /* --- TOTAL DISPLAY --- */
         .total-card { margin: 20px 15px; background: linear-gradient(135deg, #1e272e 0%, #161d2b 100%); border-radius: 20px; padding: 25px; text-align: center; border: 1px solid rgba(255, 204, 0, 0.1); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
-        .total-card span { color: var(--text-gray); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-        .total-card h1 { font-size: 32px; color: var(--primary); margin: 10px 0 0; text-shadow: 0 0 15px rgba(255, 204, 0, 0.3); }
-
-        /* --- HISTORY LIST --- */
+        .total-card span { color: var(--text-gray); font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .total-card h1 { font-size: 32px; color: var(--primary); margin: 10px 0 0; }
         .history-list { padding: 0 15px; margin-top: 10px; }
-        .hist-card { background: var(--card-bg); padding: 18px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; position: relative; overflow: hidden; }
-        
+        .hist-card { background: var(--card-bg); padding: 18px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
         .hist-info b { font-size: 18px; color: #fff; display: block; margin-bottom: 4px; }
         .hist-info p { font-size: 11px; color: var(--text-gray); margin: 2px 0; }
-        .utr-text { color: var(--primary); opacity: 0.8; font-family: monospace; }
-
-        .status-badge { padding: 5px 12px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-        
-        /* Status Colors */
-        .pending { background: rgba(255, 204, 0, 0.1); color: var(--primary); border: 1px solid rgba(255, 204, 0, 0.2); }
-        .approved { background: rgba(46, 204, 113, 0.1); color: var(--success); border: 1px solid rgba(46, 204, 113, 0.2); }
-        .success { background: rgba(46, 204, 113, 0.1); color: var(--success); border: 1px solid rgba(46, 204, 113, 0.2); }
-        .rejected { background: rgba(231, 76, 60, 0.1); color: var(--danger); border: 1px solid rgba(231, 76, 60, 0.2); }
-
-        .no-data { text-align: center; margin-top: 50px; color: var(--text-gray); font-size: 14px; }
-        .no-data i { font-size: 50px; display: block; margin-bottom: 15px; opacity: 0.2; }
+        .utr-text { color: var(--primary); opacity: 0.8; font-family: monospace; font-size: 12px; }
+        .status-badge { padding: 5px 12px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+        .pending { background: rgba(255, 204, 0, 0.1); color: var(--primary); }
+        .approved, .success { background: rgba(46, 204, 113, 0.1); color: var(--success); }
+        .rejected { background: rgba(231, 76, 60, 0.1); color: var(--danger); }
+        .no-data { text-align: center; margin-top: 100px; color: var(--text-gray); font-size: 14px; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: #161d2b; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.05); }
+        .nav-item { text-align: center; color: var(--text-gray); font-size: 11px; flex: 1; text-decoration: none;}
+        .nav-item i { font-size: 22px; margin-bottom: 4px; display: block; }
+        .nav-item.active { color: var(--primary); }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <!-- Header -->
     <div class="header">
-        <i class="fas fa-arrow-left" onclick="history.back()"></i>
-        <b>RECHARGE HISTORY</b>
+        <i class="fas fa-arrow-left" onclick="location.href='wallet.html'"></i>
+        <b>DEPOSIT HISTORY</b>
         <i class="fas fa-sync-alt" onclick="location.reload()"></i>
     </div>
 
-    <!-- Total Success Recharge -->
     <div class="total-card">
-        <span>Total Successful Deposit</span>
-        <h1 id="totalSuccessAmt">₹0.00</h1>
+        <span>Total Successful Recharge</span>
+        <h1 id="totalApprovedAmt">₹0.00</h1>
     </div>
 
-    <!-- History Container -->
     <div class="history-list" id="historyContainer">
-        <!-- Records will load here -->
-        <div class="no-data">
-            <i class="fas fa-receipt"></i>
-            Loading your records...
-        </div>
+        <div class="no-data">Loading history...</div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i>Home</a>
+        <a href="index.html?page=activity" class="nav-item"><i class="fas fa-gift"></i>Activity</a>
+        <a href="wallet.html" class="nav-item active"><i class="fas fa-wallet"></i>Wallet</a>
+        <a href="account.html" class="nav-item"><i class="fas fa-user-circle"></i>Account</a>
     </div>
 </div>
 
 <script>
-    // --- FIREBASE CONFIG ---
     const firebaseConfig = { databaseURL: "https://jalwa-v2-ad222-default-rtdb.firebaseio.com/" };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -88,23 +73,19 @@
             window.location.href = 'login.html';
             return;
         }
-        loadFullHistory();
+        loadRealHistory();
     };
 
-    function loadFullHistory() {
-        // userId ke hisab se saari history fetch karna
+    function loadRealHistory() {
+        // userId property ke base par filter
         db.ref('requests/deposits').orderByChild('userId').equalTo(userPhone).on('value', snap => {
             const container = document.getElementById('historyContainer');
-            let totalSuccess = 0;
+            let totalApproved = 0;
             let html = "";
 
             if (!snap.exists()) {
-                container.innerHTML = `
-                    <div class="no-data">
-                        <i class="fas fa-receipt"></i>
-                        No recharge records found yet.
-                    </div>`;
-                document.getElementById('totalSuccessAmt').innerText = "₹0.00";
+                container.innerHTML = `<div class="no-data">No deposit records found.</div>`;
+                document.getElementById('totalApprovedAmt').innerText = "₹0.00";
                 return;
             }
 
@@ -112,36 +93,34 @@
             snap.forEach(child => {
                 const data = child.val();
                 records.push(data);
-                
-                // Sirf approved balance ko total mein jodna
                 if (data.status === "approved" || data.status === "success") {
-                    totalSuccess += parseFloat(data.amount);
+                    totalApproved += parseFloat(data.amount || 0);
                 }
             });
 
-            // Newest first dikhane ke liye reverse karna
             records.reverse().forEach(data => {
-                let statusClass = data.status.toLowerCase();
-                
+                const status = data.status || 'pending';
                 html += `
                     <div class="hist-card">
                         <div class="hist-info">
-                            <b>₹${parseFloat(data.amount).toFixed(2)}</b>
-                            <p class="utr-text">UTR: ${data.utr}</p>
-                            <p><i class="far fa-clock"></i> ${data.date || new Date(data.timestamp).toLocaleString()}</p>
+                            <b>₹${parseFloat(data.amount || 0).toFixed(2)}</b>
+                            <p class="utr-text">UTR: ${data.utr || 'N/A'}</p>
+                            <p><i class="far fa-clock"></i> ${data.date || 'Processing...'}</p>
                         </div>
-                        <div class="status-badge ${statusClass}">
-                            ${data.status}
+                        <div class="status-badge ${status.toLowerCase()}">
+                            ${status}
                         </div>
                     </div>
                 `;
             });
 
             container.innerHTML = html;
-            document.getElementById('totalSuccessAmt').innerText = "₹" + totalSuccess.toFixed(2);
+            document.getElementById('totalApprovedAmt').innerText = "₹" + totalApproved.toFixed(2);
+        }, error => {
+            console.error(error);
+            document.getElementById('historyContainer').innerHTML = `<div class="no-data">Permission Denied! Check Firebase Rules.</div>`;
         });
     }
 </script>
-
 </body>
 </html>
