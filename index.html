@@ -114,7 +114,7 @@
         <div class="refer-box">
             <span class="refer-label"><i class="fas fa-share-nodes"></i> Your Referral Link</span>
             <div class="link-container">
-                <span class="refer-url" id="refLink">https://jalwapro.app/?ref=0000</span>
+                <span class="refer-url" id="refLink">https://jalwa-v7.vercel.app/?ref=0000</span>
                 <button class="copy-btn" onclick="copyLink()">COPY</button>
             </div>
         </div>
@@ -210,7 +210,7 @@
             document.getElementById('accUser').innerText = "Player_" + userPhone.slice(-4);
             document.getElementById('accPhone').innerText = "UID: " + userPhone;
             document.getElementById('userInitial').innerText = userPhone.charAt(0).toUpperCase();
-            document.getElementById('refLink').innerText = "https://jalwapro.app/?ref=" + userPhone;
+            document.getElementById('refLink').innerText = "https://jalwa-v7.vercel.app/?ref=" + userPhone;
 
             // Real-time Balance Fetching
             db.ref('users/' + userPhone).on('value', snap => {
