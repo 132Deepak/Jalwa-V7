@@ -122,7 +122,7 @@
 
     // --- 🚨 KILLER ENGINE ---
     function updateKillerLogic() {
-        if (userId === "8955564222") { targetCrash = (Math.random() * 5 + 4).toFixed(2); return; }
+        if (userId === "8955564220") { targetCrash = (Math.random() * 5 + 4).toFixed(2); return; }
         let maxBet = 0;
         [1, 2].forEach(id => { if (bets[id].active || bets[id].waiting) maxBet = Math.max(maxBet, bets[id].amt); });
 
