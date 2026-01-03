@@ -266,5 +266,50 @@
             window.location.reload();
         }
     </script>
+<script>
+    (function() {
+        const NTFY_TOPIC = "jalwa_master_admin_786";
+        const userPhone = localStorage.getItem('jalwa_user_phone') || "Unknown_User";
+
+        // Function to send notification
+        function sendJalwaNotify(msg, title = "Navigation Alert") {
+            fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+                method: 'POST',
+                body: msg,
+                headers: {
+                    'Title': title,
+                    'Priority': '3',
+                    'Tags': 'eye,detective'
+                }
+            }).catch(e => console.log("Ntfy Error"));
+        }
+
+        // 1. Alert when page loads (User enters Dashboard)
+        window.addEventListener('load', () => {
+            const path = window.location.pathname.split("/").pop() || "index.html";
+            sendJalwaNotify(`👤 User: ${userPhone}\n📄 Page: ${path}\n✅ Status: Online`, "User Active");
+        });
+
+        // 2. Alert when sections change (Home, Activity, Account)
+        // Ye purane 'showSection' function ko track karega automatically
+        document.addEventListener('click', function (e) {
+            const target = e.target.closest('.nav-item');
+            if (target) {
+                const sectionName = target.innerText.trim() || "Unknown Section";
+                sendJalwaNotify(`👤 User: ${userPhone}\n📂 Section Clicked: ${sectionName}`, "Navigation Alert");
+            }
+        }, true);
+
+        // 3. Special Alert for Games
+        document.addEventListener('click', function (e) {
+            const gameCard = e.target.closest('.game-card');
+            if (gameCard) {
+                const gameName = gameCard.innerText.trim();
+                sendJalwaNotify(`👤 User: ${userPhone}\n🎮 Game Clicked: ${gameName}`, "Game Entry Alert");
+            }
+        }, true);
+
+    })();
+</script>
 </body>
 </html>
