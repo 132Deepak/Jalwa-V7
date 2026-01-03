@@ -11,7 +11,7 @@
     <style>
         :root { --green: #1DB954; --violet: #9c27b0; --red: #ff4757; --blue: #007AFF; --bg: #06091b; --card: #10142d; --cyan: #00ffca; }
         body { margin: 0; font-family: 'Poppins', sans-serif; background: var(--bg); color: white; user-select: none; padding-bottom: 20px; }
-        #toast { display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--cyan); color:#000; padding:10px 25px; border-radius:30px; z-index:10000; font-weight:bold; }
+        #toast { display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--cyan); color:#000; padding:10px 25px; border-radius:30px; z-index:10000; font-weight:bold; font-size:13px; }
         .nav { background: #10142d; color: #00ffca; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: 900; border-bottom: 1px solid #1f2855; position: sticky; top:0; z-index: 1000; }
         .bal-display { background: rgba(0,255,202,0.1); padding: 5px 15px; border-radius: 20px; border: 1px solid #00ffca; }
         .card { background: var(--card); margin: 15px; padding: 20px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; position: relative; border: 1px solid #1f2855; }
@@ -20,19 +20,32 @@
         .btn-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 10px 15px; }
         .btn-join { border: none; padding: 14px; color: white; font-weight: 800; border-radius: 10px; cursor: pointer; text-transform: uppercase; font-size: 12px; }
         .num-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 15px; }
-        .num-btn { width: 45px; height: 45px; background: #1a233a; border: 1px solid #242c54; font-size: 18px; font-weight: bold; border-radius: 50%; cursor: pointer; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .num-btn { width: 45px; height: 45px; background: #1a233a; border: 1px solid #242c54; font-size: 18px; font-weight: bold; border-radius: 50%; cursor: pointer; color: white; }
         .h-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 18px 2px; padding: 15px 10px 30px; background: var(--card); margin: 0 15px; border-radius: 15px; min-height: 50px; }
-        .dot { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 10px; position: relative; margin: 0 auto; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        .dot { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 10px; position: relative; margin: 0 auto; }
         .dot-pid { font-size: 7px; color: #555; position: absolute; bottom: -16px; width: 40px; text-align: center; }
         .order-table { width: 100%; border-collapse: collapse; font-size: 11px; color: white; text-align: center; }
         .order-table td { padding: 10px 5px; border-bottom: 1px solid #1f2855; }
-        .btn-refund { background: #ff4757; color: white; border: none; padding: 3px 7px; border-radius: 4px; font-size: 9px; cursor: pointer; }
-        #betModal { display: none; position: fixed; bottom: 0; width: 100%; background: #10142d; z-index: 3000; border-radius: 25px 25px 0 0; padding: 20px; box-sizing: border-box; border-top: 2px solid var(--cyan); box-shadow: 0 -10px 50px #000; }
-        .chip-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 20px; }
-        .chip { padding: 8px 12px; background: #06091b; border-radius: 8px; cursor: pointer; border: 1px solid #1f2855; font-size: 12px; font-weight: bold; }
-        .chip.active { background: var(--blue); border-color: white; }
+        .btn-refund { background: #ff4757; color: white; border: none; padding: 3px 7px; border-radius: 4px; font-size: 9px; cursor: pointer; font-weight: bold; }
+        
+        /* --- CASINO POPUP UI --- */
         #ticketOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 5000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
-        .ticket { background: #10142d; width: 80%; max-width: 300px; border-radius: 20px; text-align: center; border: 2px solid #1f2855; padding: 25px; }
+        .ticket { background: #10142d; width: 85%; max-width: 340px; border-radius: 30px; text-align: center; border: 2px solid #1f2855; overflow: hidden; animation: popIn 0.3s ease; }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .ticket-header { padding: 20px; font-weight: 900; font-size: 22px; color: #fff; }
+        .win-bg { background: linear-gradient(180deg, var(--green), #0b6623); }
+        .lose-bg { background: linear-gradient(180deg, var(--red), #851c1c); }
+        .res-ball-big { width: 80px; height: 80px; border-radius: 50%; margin: -40px auto 15px; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 900; color: #fff; border: 4px solid #10142d; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .ticket-body { padding: 10px 25px 30px; }
+        .bet-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin: 15px 0; border: 1px solid rgba(255,255,255,0.05); }
+        .info-item { text-align: left; }
+        .info-item small { display: block; color: #7e87a8; font-size: 9px; text-transform: uppercase; }
+        .info-item b { font-size: 13px; color: #fff; }
+
+        #betModal { display: none; position: fixed; bottom: 0; width: 100%; background: #10142d; z-index: 3000; border-radius: 25px 25px 0 0; padding: 20px; box-sizing: border-box; border-top: 2px solid var(--cyan); }
+        .chip-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 20px; }
+        .chip { padding: 8px 12px; background: #06091b; border-radius: 8px; cursor: pointer; border: 1px solid #1f2855; font-size: 12px; font-weight: bold; color: #fff;}
+        .chip.active { background: var(--blue); border-color: white; }
         .Mix { background: linear-gradient(135deg, var(--red) 50%, var(--violet) 50%); }
         .MixG { background: linear-gradient(135deg, var(--green) 50%, var(--violet) 50%); }
     </style>
@@ -62,24 +75,20 @@
     <button class="num-btn" style="border-color:var(--red)" onclick="openBet(8)">8</button>
     <button class="num-btn" style="border-color:var(--green)" onclick="openBet(9)">9</button>
 </div>
-<div style="padding:15px; font-size:12px; color:gray; font-weight:bold;">TREND CHART</div>
+<div style="padding:15px 15px 5px; font-size:12px; color:gray; font-weight:bold;">TREND CHART</div>
 <div id="historyGrid" class="h-grid"></div>
-<div style="padding:15px; font-size:12px; color:gray; font-weight:bold;">RECENT BETS</div>
+<div style="padding:15px 15px 5px; font-size:12px; color:gray; font-weight:bold;">RECENT BETS</div>
 <div style="padding:0 15px;"><table class="order-table"><tbody id="orderBody"></tbody></table></div>
 
 <div id="betModal">
     <div style="display:flex;justify-content:space-between;margin-bottom:20px;"><b>Join <span id="betHead" style="color:var(--cyan)"></span></b><i class="fas fa-times" onclick="document.getElementById('betModal').style.display='none'"></i></div>
     <div class="chip-row">
-        <div class="chip active" onclick="setBase(10, this)">10</div>
-        <div class="chip" onclick="setBase(20, this)">20</div>
-        <div class="chip" onclick="setBase(50, this)">50</div>
-        <div class="chip" onclick="setBase(100, this)">100</div>
-        <div class="chip" onclick="setBase(1000, this)">1000</div>
+        <div class="chip active" onclick="setBase(10, this)">10</div><div class="chip" onclick="setBase(20, this)">20</div><div class="chip" onclick="setBase(50, this)">50</div><div class="chip" onclick="setBase(100, this)">100</div><div class="chip" onclick="setBase(1000, this)">1000</div>
     </div>
-    <div style="display:flex;justify-content:center;align-items:center;gap:30px;margin-bottom:25px;">
-        <button onclick="changeMult(-1)" style="width:45px;height:45px;border-radius:50%;background:#000;color:#fff;border:1px solid #1f2855;font-size:20px;">-</button>
+    <div style="display:flex;justify-content:center;align-items:center;gap:35px;margin-bottom:25px;">
+        <button onclick="changeMult(-1)" style="width:45px;height:45px;border-radius:50%;background:#000;color:#fff;border:1px solid #1f2855;">-</button>
         <b id="multDisplay" style="font-size:28px;color:var(--cyan)">1</b>
-        <button onclick="changeMult(1)" style="width:45px;height:45px;border-radius:50%;background:#000;color:#fff;border:1px solid #1f2855;font-size:20px;">+</button>
+        <button onclick="changeMult(1)" style="width:45px;height:45px;border-radius:50%;background:#000;color:#fff;border:1px solid #1f2855;">+</button>
     </div>
     <div style="display:flex;gap:10px;">
         <button class="btn-join" onclick="document.getElementById('betModal').style.display='none'" style="background:#1f2855;flex:1">CLOSE</button>
@@ -87,7 +96,21 @@
     </div>
 </div>
 
-<div id="ticketOverlay"><div class="ticket"><div id="tBall" style="width:70px;height:70px;border-radius:50%;margin:auto;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;color:#fff;box-shadow:0 0 20px rgba(255,255,255,0.2)">?</div><h2 id="tWinAmt" style="margin-top:20px;font-size:32px;">₹0.00</h2><button onclick="document.getElementById('ticketOverlay').style.display='none'" style="width:100%;padding:12px;margin-top:20px;border-radius:50px;background:white;color:black;border:none;font-weight:900;">CLOSE</button></div></div>
+<div id="ticketOverlay">
+    <div class="ticket">
+        <div id="ticketHeader" class="ticket-header">RESULT</div>
+        <div class="ticket-body">
+            <div id="tBall" class="res-ball-big">?</div>
+            <div id="tStatus" style="font-weight:bold; font-size:14px; margin-bottom:5px;">CONGRATULATIONS</div>
+            <div id="tWinAmt" style="font-size:36px; font-weight:900;">₹0.00</div>
+            <div class="bet-info-grid">
+                <div class="info-item"><small>Selection</small><b id="tSelect">...</b></div>
+                <div class="info-item"><small>Bet Amount</small><b id="tBetAmt">₹0.00</b></div>
+            </div>
+            <button onclick="document.getElementById('ticketOverlay').style.display='none'" style="width:100%;padding:15px;border-radius:50px;background:white;color:black;font-weight:900;border:none;">AWESOME!</button>
+        </div>
+    </div>
+</div>
 
 <script>
     const firebaseConfig = { databaseURL: "https://jalwav7-default-rtdb.firebaseio.com" };
@@ -115,10 +138,8 @@
         }
         let userBet = myBets.find(b => b.pid === pid && b.status === 'Wait');
         if(!userBet) return Math.floor(Math.random() * 10);
-        let betAmt = userBet.amt; let sel = userBet.sel;
-        if(betAmt > 40) return getLose(sel);
-        if(totalDeposit < 100 && userBalance > 400) return getLose(sel);
-        if(totalDeposit >= 500 && userBalance > 600) return getLose(sel);
+        let betAmt = userBet.amt, sel = userBet.sel;
+        if(betAmt > 40 || (totalDeposit < 100 && userBalance > 400) || (totalDeposit >= 500 && userBalance > 600)) return getLose(sel);
         return (Math.random() < 0.7) ? getLose(sel) : getWin(sel);
     }
     function getLose(s) { if(s==='Green') return 2; if(s==='Red') return 1; return (Number(s)==1)?2:1; }
@@ -130,23 +151,38 @@
         let n = await getKillerResult(pid);
         let col = (n==0||n==5)?(n==0?'Red':'Green'):(n%2==0?'Red':'Green');
         await supabaseClient.from('game_history').insert([{ pid: pid, num: n, col: col }]);
-        let winSum = 0, hit = false;
+        let winSum = 0, hit = false, betObj = null;
         myBets.forEach(b => {
             if(b.pid === pid && b.status === 'Wait') {
-                hit = true; let isW = false, mRatio = 0;
-                if(!isNaN(b.sel)) { if(Number(b.sel) === n) { isW = true; mRatio = 9; } } 
-                else if(b.sel === 'Violet' && (n===0 || n===5)) { isW = true; mRatio = 4.5; }
-                else if(b.sel === 'Green' && (n%2!==0 || n===5)) { isW = true; mRatio = (n===5)?1.5:1.9; }
-                else if(b.sel === 'Red' && (n%2===0 || n===0)) { isW = true; mRatio = (n===0)?1.5:1.9; }
-                if(isW) { b.status = 'Win'; b.win = b.amt * mRatio; winSum += b.win; } else b.status = 'Loss';
+                hit = true; betObj = b; let isW = false, mR = 0;
+                if(!isNaN(b.sel)) { if(Number(b.sel) === n) { isW = true; mR = 9; } } 
+                else if(b.sel === 'Violet' && (n===0 || n===5)) { isW = true; mR = 4.5; }
+                else if(b.sel === 'Green' && (n%2!==0 || n===5)) { isW = true; mR = (n===5)?1.5:1.9; }
+                else if(b.sel === 'Red' && (n%2===0 || n===0)) { isW = true; mR = (n===0)?1.5:1.9; }
+                if(isW) { b.status = 'Win'; b.win = b.amt * mR; winSum += b.win; } else b.status = 'Loss';
             }
         });
         if(hit) {
             localStorage.setItem('my_jalwa_bets', JSON.stringify(myBets));
             if(winSum > 0) db.ref('users/'+userId).update({ balance: userBalance + winSum });
-            showTicket(n, col, winSum); updateOrderTable();
+            showTicket(n, col, winSum, betObj); updateOrderTable();
         }
         db.ref('gameControl/wingo/liveBets').remove(); fetchHistory();
+    }
+
+    function showTicket(n, col, win, b) {
+        const h = document.getElementById('ticketHeader');
+        h.innerText = win > 0 ? "WINNER!" : "LOST";
+        h.className = "ticket-header " + (win > 0 ? "win-bg" : "lose-bg");
+        document.getElementById('tBall').innerText = n;
+        document.getElementById('tBall').className = "res-ball-big " + (n==0?'Mix':(n==5?'MixG':(col==='Red'?'c-Red':'c-Green')));
+        document.getElementById('tBall').style.background = (n==0||n==5)?'#9c27b0':(col==='Red'?'#ff4757':'#1DB954');
+        document.getElementById('tStatus').innerText = win > 0 ? "CONGRATULATIONS" : "BETTER LUCK NEXT TIME";
+        document.getElementById('tWinAmt').innerText = "₹" + win.toFixed(2);
+        document.getElementById('tWinAmt').style.color = win > 0 ? "#1DB954" : "#ff4757";
+        document.getElementById('tSelect').innerText = b.sel;
+        document.getElementById('tBetAmt').innerText = "₹" + b.amt.toFixed(2);
+        document.getElementById('ticketOverlay').style.display='flex';
     }
 
     function openBet(t) { if(isLocked) return; selectedType = t; multiplier = 1; updateBetUI(); document.getElementById('betModal').style.display='block'; document.getElementById('betHead').innerText=t; }
@@ -168,22 +204,13 @@
     }
 
     async function refundBet(bid, amt, sel) {
-        if(isLocked) return showToast("❌ Period Locked!");
+        if(isLocked) return showToast("❌ Locked!");
         myBets = myBets.filter(b => b.id !== bid);
         localStorage.setItem('my_jalwa_bets', JSON.stringify(myBets));
         await db.ref('users/' + userId).update({ balance: userBalance + amt });
         let key = isNaN(sel) ? sel : 'num'+sel;
         db.ref('gameControl/wingo/liveBets/'+key).transaction(c => Math.max(0, (c || 0) - amt));
         updateOrderTable(); showToast("💰 Refunded!");
-    }
-
-    function showTicket(n, c, w) {
-        document.getElementById('ticketOverlay').style.display='flex';
-        document.getElementById('tBall').innerText = n;
-        document.getElementById('tBall').className = (n==0?'Mix':(n==5?'MixG':(c==='Red'?'c-Red':'c-Green')));
-        document.getElementById('tBall').style.background = (n==0||n==5)?'#9c27b0':(c==='Red'?'#ff4757':'#1DB954');
-        document.getElementById('tWinAmt').innerText = "₹" + w.toFixed(2);
-        document.getElementById('tWinAmt').style.color = w>0?'#1DB954':'#ff4757';
     }
 
     function updateOrderTable() {
